@@ -5,6 +5,7 @@ go 1.22.1
 require (
 	github.com/hashicorp/serf v0.10.1
 	github.com/oklog/ulid/v2 v2.1.0
+	github.com/sashabaranov/go-openai v1.32.5
 	github.com/sirupsen/logrus v1.9.3
 	github.com/stretchr/testify v1.7.0
 	google.golang.org/protobuf v1.35.1
