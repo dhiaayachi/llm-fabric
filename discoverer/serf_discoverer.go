@@ -65,7 +65,7 @@ func (s *SerfDiscoverer) consumeEvts(ctx context.Context, ch chan serf.Event, na
 
 				err := proto.Unmarshal(ue.Payload, &agent)
 				if err != nil {
-					s.logger.WithError(err).WithField("module", moduleLog).Error("error unmarshalling agent")
+					s.logger.WithError(err).WithField("module", moduleLog).Error("error unmarshalling llm")
 					continue
 				}
 				if agent.Id == name {
@@ -80,17 +80,17 @@ func (s *SerfDiscoverer) consumeEvts(ctx context.Context, ch chan serf.Event, na
 					"module":   moduleLog,
 					"agent_id": agent.Id,
 					"address":  agent.Address,
-				}).Info("discovered a new agent")
+				}).Info("discovered a new llm")
 
 				err = s.store.Store(&agent)
 				if err != nil {
-					s.logger.WithError(err).WithField("module", moduleLog).Error("error storing agent")
+					s.logger.WithError(err).WithField("module", moduleLog).Error("error storing llm")
 					continue
 				}
 				s.logger.WithFields(logrus.Fields{
 					"module":   moduleLog,
 					"agent_id": agent.Id,
-				}).Debug("agent stored successfully")
+				}).Debug("llm stored successfully")
 			}
 		}
 	}

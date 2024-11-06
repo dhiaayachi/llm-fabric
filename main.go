@@ -47,7 +47,7 @@ func main() {
 		}
 	}
 
-	// add local agent to the fabric
+	// add local llm to the fabric
 	svc := agentv1.Agent{Id: dconf.NodeName, Address: bindAddr.String()}
 	marshal, err := proto.Marshal(&svc)
 	if err != nil {
@@ -73,12 +73,12 @@ func main() {
 
 				err = proto.Unmarshal(ue.Payload, &agent)
 				if err != nil {
-					log.Printf("error unmarshalling agent %s", err.Error())
+					log.Printf("error unmarshalling llm %s", err.Error())
 				}
 				if agent.Id == dconf.NodeName {
 					log.Printf("got a notification for self %s from %s", agent.Id, agent.Address)
 				} else {
-					log.Printf("got a new agent %s from %s", agent.Id, agent.Address)
+					log.Printf("got a new llm %s from %s", agent.Id, agent.Address)
 				}
 			}
 		}

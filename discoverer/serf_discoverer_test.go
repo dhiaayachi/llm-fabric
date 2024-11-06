@@ -51,7 +51,7 @@ func TestJoin_Success(t *testing.T) {
 	logger := setupLogger()
 
 	mockSerf.On("Join", []string{"127.0.0.1"}, true).Return(1, nil)
-	mockSerf.On("LocalMember").Return(serf.Member{Name: "local-agent"})
+	mockSerf.On("LocalMember").Return(serf.Member{Name: "local-llm"})
 
 	discoverer := &SerfDiscoverer{
 		serf:   mockSerf,
@@ -93,7 +93,7 @@ func TestConsumeEvts_ProcessUserEvent(t *testing.T) {
 	mockStore := new(MockStore)
 	logger := setupLogger()
 
-	agent := &agentv1.Agent{Id: "test-agent", Address: "127.0.0.1"}
+	agent := &agentv1.Agent{Id: "test-llm", Address: "127.0.0.1"}
 	payload, _ := proto.Marshal(agent)
 	mockEvent := serf.UserEvent{Payload: payload}
 	mockStore.On("Store", mock.MatchedBy(func(a interface{}) bool {
@@ -120,7 +120,7 @@ func TestConsumeEvts_ProcessUserEvent(t *testing.T) {
 		cancel() // Stop the goroutine after some time to prevent an infinite loop in tests
 	}()
 
-	discoverer.consumeEvts(ctx, discoverer.evtCh, "other-agent")
+	discoverer.consumeEvts(ctx, discoverer.evtCh, "other-llm")
 }
 
 func TestConsumeEvts_SkipSelfNotification(t *testing.T) {
@@ -128,7 +128,7 @@ func TestConsumeEvts_SkipSelfNotification(t *testing.T) {
 	mockStore := new(MockStore)
 	logger := setupLogger()
 
-	agent := &agentv1.Agent{Id: "local-agent", Address: "127.0.0.1"}
+	agent := &agentv1.Agent{Id: "local-llm", Address: "127.0.0.1"}
 	payload, _ := proto.Marshal(agent)
 	mockEvent := serf.UserEvent{Payload: payload}
 
@@ -148,7 +148,7 @@ func TestConsumeEvts_SkipSelfNotification(t *testing.T) {
 		cancel() // Stop the goroutine after some time to prevent an infinite loop in tests
 	}()
 
-	discoverer.consumeEvts(ctx, discoverer.evtCh, "local-agent")
+	discoverer.consumeEvts(ctx, discoverer.evtCh, "local-llm")
 
 	mockStore.AssertNotCalled(t, "Store", agent)
 }
@@ -177,7 +177,7 @@ func TestConsumeEvts_UnmarshalError(t *testing.T) {
 		cancel()
 	}()
 
-	discoverer.consumeEvts(ctx, discoverer.evtCh, "other-agent")
+	discoverer.consumeEvts(ctx, discoverer.evtCh, "other-llm")
 
 	mockStore.AssertNotCalled(t, "Store", mock.Anything)
 }
@@ -200,7 +200,7 @@ func TestNewSerfDiscoverer_Success(t *testing.T) {
 	conf.EventCh = e
 
 	mockSerf := new(MockSerf)
-	mockSerf.On("LocalMember").Return(serf.Member{Name: "local-agent"})
+	mockSerf.On("LocalMember").Return(serf.Member{Name: "local-llm"})
 
 	// Assuming the serf.Create call has been mocked appropriately in actual tests or integration
 	discoverer, err := NewSerfDiscoverer(conf, mockStore, logger)

@@ -1,13 +1,16 @@
 module github.com/dhiaayachi/llm-fabric
 
-go 1.22.1
+go 1.22.8
+
+toolchain go1.23.1
 
 require (
 	github.com/hashicorp/serf v0.10.1
 	github.com/oklog/ulid/v2 v2.1.0
+	github.com/ollama/ollama v0.4.0
 	github.com/sashabaranov/go-openai v1.32.5
 	github.com/sirupsen/logrus v1.9.3
-	github.com/stretchr/testify v1.7.0
+	github.com/stretchr/testify v1.9.0
 	google.golang.org/protobuf v1.35.1
 )
 
@@ -25,8 +28,8 @@ require (
 	github.com/miekg/dns v1.1.41 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/sean-/seed v0.0.0-20170313163322-e2103e2c3529 // indirect
-	github.com/stretchr/objx v0.1.0 // indirect
-	golang.org/x/net v0.23.0 //indirect
-	golang.org/x/sys v0.18.0 // indirect
-	gopkg.in/yaml.v3 v3.0.0-20200313102051-9f266ea9e77c // indirect
+	github.com/stretchr/objx v0.5.2 // indirect
+	golang.org/x/net v0.25.0 //indirect
+	golang.org/x/sys v0.20.0 // indirect
+	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
