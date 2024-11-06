@@ -57,7 +57,7 @@ message Tool {
 service AgentService{
   rpc SubmitTask(SubmitTaskRequest) returns (SubmitTaskResponse) {
     option (google.api.http) = {
-              post: "/v1/example/echo"
+              post: "/v1/submittask"
                body: "*"
             };
   }
