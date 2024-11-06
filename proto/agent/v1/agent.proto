@@ -42,3 +42,15 @@ message Tool {
   string description = 2;
   ToolType type = 3;
  }
+
+ message SubmitTaskRequest {
+   string task = 1;
+ }
+
+ message SubmitTaskResponse{
+  string response = 1;
+ }
+
+service AgentService{
+  rpc SubmitTask(SubmitTaskRequest) returns (SubmitTaskResponse) {}
+}

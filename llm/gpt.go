@@ -18,7 +18,7 @@ type GPT struct {
 }
 
 // SubmitTask sends a task (prompt) to the OpenAI ChatGPT API and returns all responses as a slice of strings.
-func (c *GPT) SubmitTask(task string) ([]string, error) {
+func (c *GPT) SubmitTask(ctx context.Context, task string) ([]string, error) {
 	logger := c.logger.WithFields(logrus.Fields{
 		"task": task})
 	logger.Info("Submitting task to ChatGPT")
@@ -35,7 +35,7 @@ func (c *GPT) SubmitTask(task string) ([]string, error) {
 	}
 
 	// Call the OpenAI API and get the response
-	resp, err := c.client.CreateChatCompletion(context.Background(), req)
+	resp, err := c.client.CreateChatCompletion(ctx, req)
 	if err != nil {
 		logger.WithError(err).Error("Failed to submit task to ChatGPT")
 		return nil, fmt.Errorf("failed to submit task to ChatGPT: %w", err)

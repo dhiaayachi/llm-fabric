@@ -20,7 +20,7 @@ type OllamaClient struct {
 }
 
 // SubmitTask sends a task (prompt) to the Ollama API and returns all responses as a slice of strings.
-func (c *OllamaClient) SubmitTask(task string) ([]string, error) {
+func (c *OllamaClient) SubmitTask(ctx context.Context, task string) ([]string, error) {
 	logger := c.logger.WithFields(logrus.Fields{
 		"task": task,
 	})
@@ -34,7 +34,7 @@ func (c *OllamaClient) SubmitTask(task string) ([]string, error) {
 
 	var resp api.GenerateResponse
 	// Call the Ollama API and get the response
-	err := c.client.Generate(context.Background(), req, func(response api.GenerateResponse) error {
+	err := c.client.Generate(ctx, req, func(response api.GenerateResponse) error {
 		resp = response
 		return nil
 	})
