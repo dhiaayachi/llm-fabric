@@ -3,13 +3,13 @@ package llm
 import (
 	"context"
 	"encoding/json"
+	agentv1 "github.com/dhiaayachi/llm-fabric/proto/gen/agent/v1"
 	"github.com/stretchr/testify/require"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 
-	"github.com/dhiaayachi/llm-fabric/proto/gen/agent/v1"
-	openai "github.com/sashabaranov/go-openai"
+	"github.com/sashabaranov/go-openai"
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 )

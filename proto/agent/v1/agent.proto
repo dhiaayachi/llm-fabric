@@ -2,6 +2,9 @@ syntax = "proto3";
 
 package agent.v1;
 
+import "google/api/annotations.proto";
+
+option go_package = "github.com/dhiaayachi/llm-fabric/proto/gen/agent";
 message Agent {
 
   // port is the port assigned to the workload
@@ -52,5 +55,10 @@ message Tool {
  }
 
 service AgentService{
-  rpc SubmitTask(SubmitTaskRequest) returns (SubmitTaskResponse) {}
+  rpc SubmitTask(SubmitTaskRequest) returns (SubmitTaskResponse) {
+    option (google.api.http) = {
+              post: "/v1/example/echo"
+               body: "*"
+            };
+  }
 }

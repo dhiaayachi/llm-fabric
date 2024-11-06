@@ -1,7 +1,52 @@
-version: v1
+version: v2
+# The v2 buf.yaml file specifies a local workspace, which consists of at least one module.
+# The buf.yaml file should be placed at the root directory of the workspace, which
+# should generally be the root of your source control repository.
+modules:
+  # Each module entry defines a path, which must be relative to the directory where the
+  # buf.yaml is located. You can also specify directories to exclude from a module.
+  - path: proto/agent/v1
+    # Modules can also optionally specify their Buf Schema Repository name if it exists.
+    name: buf.build/llm-fabric/agent
+    # Excluding a subdirectory and a specific .proto file. Note that the paths for exclusion
+    # are relative to the buf.yaml file.
+    # A module can have its own lint and breaking configuration, which overrides the default
+    # lint and breaking configuration in its entirety for that module. All values from the
+    # default configuration are overridden and no rules are merged.
+    lint:
+      use:
+        - STANDARD
+    breaking:
+      use:
+        - FILE
+      except:
+        - EXTENSION_MESSAGE_NO_DELETE
+      ignore_unstable_packages: true
+# Dependencies shared by all modules in the workspace. Must be modules hosted in the Buf Schema Registry.
+# The resolution of these dependencies is stored in the buf.lock file.
+deps:
+  - buf.build/googleapis/googleapis
+# The default lint configuration for any modules that don't have a specific lint configuration.
+#
+# If this section isn't present, AND a module doesn't have a specific lint configuration, the default
+# lint configuration is used for the module.
+lint:
+  use:
+    - STANDARD
+# Default breaking configuration. It behaves the same as the default lint configuration.
 breaking:
   use:
     - FILE
-lint:
-  use:
-    - DEFAULT
+# Optional Buf plugins. Can use to require custom lint or breaking change rules specified in a locally
+# installed plugin. Each Buf plugin is listed separately, and can include options if the plugin allows
+# for them. If a rule has its `default` value set to true, the rule will be checked against even if
+# the 'lint' and 'breaking' fields aren't set.
+#
+# See the example at https://github.com/bufbuild/bufplugin-go/blob/main/check/internal/example/cmd/buf-plugin-timestamp-suffix/main.go
+# for more detail about the sample below.
+plugins:
+  - plugin: plugin-timestamp-suffix # Specifies the installed plugin to use
+    options:
+      # The TIMESTAMP_SUFFIX rule specified above allows the user to change the suffix by providing a
+      # new value here.
+      timestamp_suffix: _time
