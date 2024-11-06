@@ -1,6 +1,7 @@
 package llm
 
 import (
+	"context"
 	"encoding/json"
 	"github.com/stretchr/testify/require"
 	"net/http"
@@ -44,7 +45,7 @@ func TestSubmitTask_Success(t *testing.T) {
 	gpt := NewGPT(clientConfig, logger, "gpt-3.5-turbo", "user", []agentv1.Capability{}, []agentv1.Tool{})
 
 	// Call SubmitTask and assert the response
-	responses, err := gpt.SubmitTask("Test prompt")
+	responses, err := gpt.SubmitTask(context.Background(), "Test prompt")
 	assert.NoError(t, err)
 	assert.Equal(t, []string{"Response 1", "Response 2"}, responses)
 }
@@ -75,7 +76,7 @@ func TestSubmitTask_NoChoices(t *testing.T) {
 	gpt := NewGPT(clientConfig, logger, "gpt-3.5-turbo", "user", []agentv1.Capability{}, []agentv1.Tool{})
 
 	// Call SubmitTask and assert an error is returned
-	responses, err := gpt.SubmitTask("Test prompt")
+	responses, err := gpt.SubmitTask(context.Background(), "Test prompt")
 	assert.Error(t, err)
 	assert.Nil(t, responses)
 	assert.Contains(t, err.Error(), "no response from ChatGPT")
@@ -102,7 +103,7 @@ func TestSubmitTask_ErrorFromAPI(t *testing.T) {
 	gpt := NewGPT(clientConfig, logger, "gpt-3.5-turbo", "user", []agentv1.Capability{}, []agentv1.Tool{})
 
 	// Call SubmitTask and assert an error is returned
-	responses, err := gpt.SubmitTask("Test prompt")
+	responses, err := gpt.SubmitTask(context.Background(), "Test prompt")
 	assert.Error(t, err)
 	assert.Nil(t, responses)
 	assert.Contains(t, err.Error(), "failed to submit task to ChatGPT")

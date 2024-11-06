@@ -1,6 +1,7 @@
 package llm_test
 
 import (
+	"context"
 	"encoding/json"
 	"github.com/stretchr/testify/require"
 	"net/http"
@@ -42,7 +43,7 @@ func TestSubmitTask_Success(t *testing.T) {
 	ollamaClient := llm.NewOllama(client, logger, "test-model", "user", []agentv1.Capability{}, []agentv1.Tool{})
 
 	// Call SubmitTask
-	responses, err := ollamaClient.SubmitTask("Hello")
+	responses, err := ollamaClient.SubmitTask(context.Background(), "Hello")
 	assert.NoError(t, err)
 	assert.Equal(t, []string{"Test response"}, responses)
 }
@@ -62,7 +63,7 @@ func TestSubmitTask_Error(t *testing.T) {
 	ollamaClient := llm.NewOllama(client, logger, "test-model", "user", []agentv1.Capability{}, []agentv1.Tool{})
 
 	// Call SubmitTask and expect an error
-	responses, err := ollamaClient.SubmitTask("Hello")
+	responses, err := ollamaClient.SubmitTask(context.Background(), "Hello")
 	assert.Error(t, err)
 	assert.Nil(t, responses)
 	assert.Contains(t, err.Error(), "failed to submit task to Ollama")

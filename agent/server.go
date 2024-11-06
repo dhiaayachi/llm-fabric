@@ -25,8 +25,8 @@ func (s Server) SubmitTask(ctx context.Context, request *agentv1.SubmitTaskReque
 
 var _ agentv1.AgentServiceServer = &Server{}
 
-func NewServer() *Server {
-	srv := Server{srv: grpc.NewServer()}
+func NewServer(llm llm.Llm) *Server {
+	srv := Server{srv: grpc.NewServer(), llm: llm}
 	srv.srv.RegisterService(&agentv1.AgentService_ServiceDesc, srv)
 	return &srv
 
