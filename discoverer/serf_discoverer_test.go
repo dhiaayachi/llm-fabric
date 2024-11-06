@@ -88,6 +88,43 @@ func TestJoin_Failure(t *testing.T) {
 	mockSerf.AssertExpectations(t)
 }
 
+func TestConsumeEvts_ProcessUserEvent_StoreFailure(t *testing.T) {
+	mockSerf := new(MockSerf)
+	mockStore := new(MockStore)
+	logger := setupLogger()
+
+	mockStore.On("Store", mock.Anything, mock.Anything).Return(errors.New("store error"))
+
+	agent := &agentv1.Agent{Id: "test-llm", Address: "127.0.0.1"}
+	payload, _ := proto.Marshal(agent)
+	mockEvent := serf.UserEvent{Payload: payload}
+	mockStore.On("Store", mock.MatchedBy(func(a interface{}) bool {
+		a1, ok := a.(*agentv1.Agent)
+		if !ok {
+			return false
+		}
+		return proto.Equal(a1, agent)
+	})).Return(nil)
+
+	discoverer := &SerfDiscoverer{
+		serf:   mockSerf,
+		evtCh:  make(chan serf.Event, 1),
+		store:  mockStore,
+		logger: logger,
+	}
+
+	discoverer.evtCh <- mockEvent
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	go func() {
+		time.Sleep(500 * time.Millisecond)
+		cancel() // Stop the goroutine after some time to prevent an infinite loop in tests
+	}()
+
+	discoverer.consumeEvts(ctx, discoverer.evtCh, "other-llm")
+}
+
 func TestConsumeEvts_ProcessUserEvent(t *testing.T) {
 	mockSerf := new(MockSerf)
 	mockStore := new(MockStore)
