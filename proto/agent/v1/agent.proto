@@ -8,30 +8,25 @@ option go_package = "github.com/dhiaayachi/llm-fabric/proto/gen/agent";
 message Agent {
 
   // port is the port assigned to the workload
-  string address = 2;
+  string address = 1;
 
   // description opaque description
-  string description = 3;
+  string description = 2;
 
-  repeated Capability capabilities = 4;
+  repeated Capability capabilities = 3;
 
-  repeated Tool tools = 5;
+  repeated Tool tools = 4;
 
-  string id = 6;
+  string id = 5;
 
-  float cost = 7;
+  float cost = 6;
 
-  float score = 8;
+  float score = 7;
 }
 
-enum Capability{
-  CAPABILITY_UNSPECIFIED = 0;
-  CAPABILITY_TEXT = 1;
-  CAPABILITY_SUMMARIZATION = 2;
-  CAPABILITY_IMAGE = 3;
-  CAPABILITY_VIDEO = 4;
-  CAPABILITY_DISPATCH = 5;
-  CAPABILITY_SUBDIVIDE_TASK = 6;
+message Capability{
+  string id = 1;
+  string description = 2;
 }
 
 enum ToolType{

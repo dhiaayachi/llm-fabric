@@ -3,6 +3,7 @@ package discoverer
 import (
 	"context"
 	"errors"
+	"fmt"
 	"testing"
 	"time"
 
@@ -29,9 +30,19 @@ func (m *MockSerf) LocalMember() serf.Member {
 	return args.Get(0).(serf.Member)
 }
 
+func (m *MockSerf) UserEvent(name string, payload []byte, coalesce bool) error {
+	args := m.Called(name, payload, coalesce)
+	return args.Error(0)
+}
+
 // MockStore implements the Store interface for testing purposes.
 type MockStore struct {
 	mock.Mock
+}
+
+func (m *MockStore) GetAll() []*agentv1.Agent {
+	args := m.Called()
+	return args.Get(0).([]*agentv1.Agent)
 }
 
 func (m *MockStore) Store(agent *agentv1.Agent) error {
@@ -51,7 +62,6 @@ func TestJoin_Success(t *testing.T) {
 	logger := setupLogger()
 
 	mockSerf.On("Join", []string{"127.0.0.1"}, true).Return(1, nil)
-	mockSerf.On("LocalMember").Return(serf.Member{Name: "local-llm"})
 
 	discoverer := &SerfDiscoverer{
 		serf:   mockSerf,
@@ -61,7 +71,7 @@ func TestJoin_Success(t *testing.T) {
 	}
 
 	ctx := context.Background()
-	err := discoverer.Join(ctx, []string{"127.0.0.1"})
+	err := discoverer.Join(ctx, []string{"127.0.0.1"}, &agentv1.Agent{})
 
 	assert.NoError(t, err, "Join should not return an error")
 	mockSerf.AssertExpectations(t)
@@ -82,7 +92,7 @@ func TestJoin_Failure(t *testing.T) {
 	}
 
 	ctx := context.Background()
-	err := discoverer.Join(ctx, []string{"127.0.0.1"})
+	err := discoverer.Join(ctx, []string{"127.0.0.1"}, &agentv1.Agent{})
 
 	assert.Error(t, err, "Join should return an error on failure")
 	mockSerf.AssertExpectations(t)
@@ -94,6 +104,7 @@ func TestConsumeEvts_ProcessUserEvent_StoreFailure(t *testing.T) {
 	logger := setupLogger()
 
 	mockStore.On("Store", mock.Anything, mock.Anything).Return(errors.New("store error"))
+	mockSerf.On("UserEvent", mock.Anything, mock.Anything, mock.Anything).Return(nil)
 
 	agent := &agentv1.Agent{Id: "test-llm", Address: "127.0.0.1"}
 	payload, _ := proto.Marshal(agent)
@@ -122,7 +133,7 @@ func TestConsumeEvts_ProcessUserEvent_StoreFailure(t *testing.T) {
 		cancel() // Stop the goroutine after some time to prevent an infinite loop in tests
 	}()
 
-	discoverer.consumeEvts(ctx, discoverer.evtCh, "other-llm")
+	discoverer.run(ctx, discoverer.evtCh, time.Millisecond)
 }
 
 func TestConsumeEvts_ProcessUserEvent(t *testing.T) {
@@ -140,6 +151,7 @@ func TestConsumeEvts_ProcessUserEvent(t *testing.T) {
 		}
 		return proto.Equal(a1, agent)
 	})).Return(nil)
+	mockSerf.On("UserEvent", mock.Anything, mock.Anything, mock.Anything).Return(nil)
 
 	discoverer := &SerfDiscoverer{
 		serf:   mockSerf,
@@ -157,37 +169,8 @@ func TestConsumeEvts_ProcessUserEvent(t *testing.T) {
 		cancel() // Stop the goroutine after some time to prevent an infinite loop in tests
 	}()
 
-	discoverer.consumeEvts(ctx, discoverer.evtCh, "other-llm")
-}
+	discoverer.run(ctx, discoverer.evtCh, time.Millisecond)
 
-func TestConsumeEvts_SkipSelfNotification(t *testing.T) {
-	mockSerf := new(MockSerf)
-	mockStore := new(MockStore)
-	logger := setupLogger()
-
-	agent := &agentv1.Agent{Id: "local-llm", Address: "127.0.0.1"}
-	payload, _ := proto.Marshal(agent)
-	mockEvent := serf.UserEvent{Payload: payload}
-
-	discoverer := &SerfDiscoverer{
-		serf:   mockSerf,
-		evtCh:  make(chan serf.Event, 1),
-		store:  mockStore,
-		logger: logger,
-	}
-
-	discoverer.evtCh <- mockEvent
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
-
-	go func() {
-		time.Sleep(500 * time.Millisecond)
-		cancel() // Stop the goroutine after some time to prevent an infinite loop in tests
-	}()
-
-	discoverer.consumeEvts(ctx, discoverer.evtCh, "local-llm")
-
-	mockStore.AssertNotCalled(t, "Store", agent)
 }
 
 func TestConsumeEvts_UnmarshalError(t *testing.T) {
@@ -214,7 +197,36 @@ func TestConsumeEvts_UnmarshalError(t *testing.T) {
 		cancel()
 	}()
 
-	discoverer.consumeEvts(ctx, discoverer.evtCh, "other-llm")
+	mockSerf.On("UserEvent", mock.Anything, mock.Anything, mock.Anything).Return(nil)
+
+	discoverer.run(ctx, discoverer.evtCh, time.Millisecond)
+
+	mockStore.AssertNotCalled(t, "Store", mock.Anything)
+}
+
+func TestConsumeEvts_UserEvent(t *testing.T) {
+	mockSerf := new(MockSerf)
+	mockStore := new(MockStore)
+	logger := setupLogger()
+
+	discoverer := &SerfDiscoverer{
+		serf:   mockSerf,
+		evtCh:  make(chan serf.Event, 1),
+		store:  mockStore,
+		logger: logger,
+	}
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	go func() {
+		time.Sleep(500 * time.Millisecond)
+		cancel()
+	}()
+
+	mockSerf.On("UserEvent", mock.Anything, mock.Anything, mock.Anything).Return(fmt.Errorf("some error"))
+
+	discoverer.run(ctx, discoverer.evtCh, time.Millisecond)
 
 	mockStore.AssertNotCalled(t, "Store", mock.Anything)
 }
@@ -244,4 +256,21 @@ func TestNewSerfDiscoverer_Success(t *testing.T) {
 
 	assert.NoError(t, err, "NewSerfDiscoverer should not return an error on success")
 	assert.NotNil(t, discoverer, "discoverer should not be nil")
+}
+
+func TestGetAgents_Success(t *testing.T) {
+	logger := setupLogger()
+	mockStore := new(MockStore)
+	discoverer := &SerfDiscoverer{
+		serf:   nil,
+		evtCh:  make(chan serf.Event, 1),
+		store:  mockStore,
+		logger: logger,
+	}
+	agentsExpected := []*agentv1.Agent{{Id: "1", Description: "agent 1"}, {Id: "2", Description: "agent 2"}}
+	mockStore.On("GetAll").Return(agentsExpected)
+
+	agents := discoverer.GetAgents()
+
+	assert.Equal(t, agentsExpected, agents)
 }

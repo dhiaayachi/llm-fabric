@@ -115,8 +115,8 @@ func TestGetCapabilities(t *testing.T) {
 	logger.SetLevel(logrus.DebugLevel)
 
 	capabilities := []agentv1.Capability{
-		agentv1.Capability_CAPABILITY_TEXT,
-		agentv1.Capability_CAPABILITY_SUMMARIZATION,
+		{Id: "1", Description: "Text generation"},
+		{Id: "2", Description: "Text summarization"},
 	}
 
 	gpt := NewGPT(openai.ClientConfig{}, logger, "gpt-3.5-turbo", "user", capabilities, []agentv1.Tool{})
@@ -149,7 +149,7 @@ func TestNewGPT(t *testing.T) {
 	logger.SetLevel(logrus.DebugLevel)
 
 	capabilities := []agentv1.Capability{
-		agentv1.Capability_CAPABILITY_TEXT,
+		{Id: "1", Description: "Text generation"},
 	}
 	tools := []agentv1.Tool{
 		{Name: "Tool 1"},

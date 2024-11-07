@@ -15,7 +15,7 @@ type Server struct {
 
 func (s Server) SubmitTask(ctx context.Context, request *agentv1.SubmitTaskRequest) (*agentv1.SubmitTaskResponse, error) {
 	resp := &agentv1.SubmitTaskResponse{}
-	response, err := s.llm.SubmitTask(ctx, request.Task)
+	response, err := s.llm.SubmitTask(ctx, request.Task, "json")
 	if err != nil {
 		return nil, err
 	}
@@ -29,5 +29,4 @@ func NewServer(llm llm.Llm) *Server {
 	srv := Server{srv: grpc.NewServer(), llm: llm}
 	srv.srv.RegisterService(&agentv1.AgentService_ServiceDesc, srv)
 	return &srv
-
 }

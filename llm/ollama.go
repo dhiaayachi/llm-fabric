@@ -3,7 +3,6 @@ package llm
 import (
 	"context"
 	"fmt"
-
 	agentv1 "github.com/dhiaayachi/llm-fabric/proto/gen/agent/v1"
 	"github.com/ollama/ollama/api"
 	"github.com/sirupsen/logrus"
@@ -19,8 +18,10 @@ type OllamaClient struct {
 	tools        []agentv1.Tool
 }
 
+var _ Llm = &OllamaClient{}
+
 // SubmitTask sends a task (prompt) to the Ollama API and returns all responses as a slice of strings.
-func (c *OllamaClient) SubmitTask(ctx context.Context, task string) ([]string, error) {
+func (c *OllamaClient) SubmitTask(ctx context.Context, task string, respFormat string) (string, error) {
 	logger := c.logger.WithFields(logrus.Fields{
 		"task": task,
 	})
@@ -30,24 +31,26 @@ func (c *OllamaClient) SubmitTask(ctx context.Context, task string) ([]string, e
 	req := &api.GenerateRequest{
 		Model:  c.model,
 		Prompt: task,
+		Format: respFormat,
 	}
 
-	var resp api.GenerateResponse
+	var resp string
 	// Call the Ollama API and get the response
 	err := c.client.Generate(ctx, req, func(response api.GenerateResponse) error {
-		resp = response
+		resp += response.Response
+		logger.WithField("response", resp).Trace("Got response")
 		return nil
 	})
 	if err != nil {
 		logger.WithError(err).Error("Failed to submit task to Ollama")
-		return nil, fmt.Errorf("failed to submit task to Ollama: %w", err)
+		return "", fmt.Errorf("failed to submit task to Ollama: %w", err)
 	}
 
 	logger.WithFields(logrus.Fields{
-		"content": resp.Response,
+		"content": resp,
 	}).Info("Received response from Ollama")
 
-	return []string{resp.Response}, nil
+	return resp, nil
 }
 
 // GetCapabilities returns the predefined capabilities of the Ollama client.

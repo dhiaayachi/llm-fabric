@@ -43,9 +43,9 @@ func TestSubmitTask_Success(t *testing.T) {
 	ollamaClient := llm.NewOllama(client, logger, "test-model", "user", []agentv1.Capability{}, []agentv1.Tool{})
 
 	// Call SubmitTask
-	responses, err := ollamaClient.SubmitTask(context.Background(), "Hello")
+	responses, err := ollamaClient.SubmitTask(context.Background(), "Hello", "json")
 	assert.NoError(t, err)
-	assert.Equal(t, []string{"Test response"}, responses)
+	assert.Equal(t, "Test response", responses)
 }
 
 func TestSubmitTask_Error(t *testing.T) {
@@ -63,9 +63,9 @@ func TestSubmitTask_Error(t *testing.T) {
 	ollamaClient := llm.NewOllama(client, logger, "test-model", "user", []agentv1.Capability{}, []agentv1.Tool{})
 
 	// Call SubmitTask and expect an error
-	responses, err := ollamaClient.SubmitTask(context.Background(), "Hello")
+	responses, err := ollamaClient.SubmitTask(context.Background(), "Hello", "json")
 	assert.Error(t, err)
-	assert.Nil(t, responses)
+	assert.Empty(t, responses)
 	assert.Contains(t, err.Error(), "failed to submit task to Ollama")
 
 	// Verify logs
@@ -78,7 +78,7 @@ func TestGetCapabilities(t *testing.T) {
 	parsedURL, err := url.Parse("http://localhost")
 	require.NoError(t, err)
 	client := api.NewClient(parsedURL, nil)
-	capabilities := []agentv1.Capability{agentv1.Capability_CAPABILITY_TEXT}
+	capabilities := []agentv1.Capability{{Id: "1", Description: "text generation"}}
 	ollamaClient := llm.NewOllama(client, logger, "test-model", "user", capabilities, []agentv1.Tool{})
 
 	// Call GetCapabilities

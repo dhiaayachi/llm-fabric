@@ -22,19 +22,19 @@ type MockLlm struct {
 	mock.Mock
 }
 
-func (m *MockLlm) SubmitTask(ctx context.Context, task string) (string, error) {
-	args := m.Called(ctx, task)
+func (m *MockLlm) SubmitTask(ctx context.Context, task string, format string) (string, error) {
+	args := m.Called(ctx, task, format)
 	return args.Get(0).(string), args.Error(1)
 }
 
-func (m *MockLlm) GetCapabilities() ([]agentv1.Capability, error) {
+func (m *MockLlm) GetCapabilities() []agentv1.Capability {
 	args := m.Called()
-	return args.Get(0).([]agentv1.Capability), args.Error(1)
+	return args.Get(0).([]agentv1.Capability)
 }
 
-func (m *MockLlm) GetTools() ([]agentv1.Tool, error) {
+func (m *MockLlm) GetTools() []agentv1.Tool {
 	args := m.Called()
-	return args.Get(0).([]agentv1.Tool), args.Error(1)
+	return args.Get(0).([]agentv1.Tool)
 }
 
 func startTestServer(llmMock llm.Llm) (*grpc.ClientConn, func(), error) {
@@ -75,7 +75,7 @@ func TestSubmitTask_Success(t *testing.T) {
 	task := "Test Task"
 	expectedResponse := "Task Response"
 
-	llmMock.On("SubmitTask", mock.Anything, task).Return(expectedResponse, nil)
+	llmMock.On("SubmitTask", mock.Anything, task, "json").Return(expectedResponse, nil)
 
 	// Start the test gRPC server
 	conn, cleanup, err := startTestServer(llmMock)
@@ -101,7 +101,7 @@ func TestSubmitTask_Error(t *testing.T) {
 	task := "Test Task"
 	expectedError := errors.New("failed to process task")
 
-	llmMock.On("SubmitTask", mock.Anything, task).Return("", expectedError)
+	llmMock.On("SubmitTask", mock.Anything, task, "json").Return("", expectedError)
 
 	// Start the test gRPC server
 	conn, cleanup, err := startTestServer(llmMock)
