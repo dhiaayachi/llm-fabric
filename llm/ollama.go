@@ -21,11 +21,13 @@ type OllamaClient struct {
 var _ Llm = &OllamaClient{}
 
 // SubmitTask sends a task (prompt) to the Ollama API and returns all responses as a slice of strings.
-func (c *OllamaClient) SubmitTask(ctx context.Context, task string, respFormat string) (string, error) {
+func (c *OllamaClient) SubmitTask(ctx context.Context, task string, opts ...*Opt) (string, error) {
 	logger := c.logger.WithFields(logrus.Fields{
 		"task": task,
 	})
 	logger.Info("Submitting task to Ollama")
+
+	respFormat := getOpt[string](agentv1.LlmOptType_LLM_OPT_TYPE_OllamaResponseFormat, opts...)
 
 	// Create a request using Ollama's client
 	req := &api.GenerateRequest{

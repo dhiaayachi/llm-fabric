@@ -43,7 +43,10 @@ func TestSubmitTask_Success(t *testing.T) {
 	ollamaClient := llm.NewOllama(client, logger, "test-model", "user", []agentv1.Capability{}, []agentv1.Tool{})
 
 	// Call SubmitTask
-	responses, err := ollamaClient.SubmitTask(context.Background(), "Hello", "json")
+	o := &llm.Opt{LlmOpt: &agentv1.LlmOpt{Typ: agentv1.LlmOptType_LLM_OPT_TYPE_OllamaResponseFormat}}
+	err = o.FromVal("json")
+	require.NoError(t, err)
+	responses, err := ollamaClient.SubmitTask(context.Background(), "Hello", o)
 	assert.NoError(t, err)
 	assert.Equal(t, "Test response", responses)
 }
@@ -63,7 +66,10 @@ func TestSubmitTask_Error(t *testing.T) {
 	ollamaClient := llm.NewOllama(client, logger, "test-model", "user", []agentv1.Capability{}, []agentv1.Tool{})
 
 	// Call SubmitTask and expect an error
-	responses, err := ollamaClient.SubmitTask(context.Background(), "Hello", "json")
+	o := &llm.Opt{LlmOpt: &agentv1.LlmOpt{Typ: agentv1.LlmOptType_LLM_OPT_TYPE_OllamaResponseFormat}}
+	err = o.FromVal("json")
+	require.NoError(t, err)
+	responses, err := ollamaClient.SubmitTask(context.Background(), "Hello", o)
 	assert.Error(t, err)
 	assert.Empty(t, responses)
 	assert.Contains(t, err.Error(), "failed to submit task to Ollama")

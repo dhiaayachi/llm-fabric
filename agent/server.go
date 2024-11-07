@@ -15,7 +15,11 @@ type Server struct {
 
 func (s Server) SubmitTask(ctx context.Context, request *agentv1.SubmitTaskRequest) (*agentv1.SubmitTaskResponse, error) {
 	resp := &agentv1.SubmitTaskResponse{}
-	response, err := s.llm.SubmitTask(ctx, request.Task, "json")
+	opts := make([]*llm.Opt, 0)
+	for _, opt := range request.Opts {
+		opts = append(opts, &llm.Opt{LlmOpt: opt})
+	}
+	response, err := s.llm.SubmitTask(ctx, request.Task, opts...)
 	if err != nil {
 		return nil, err
 	}

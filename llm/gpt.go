@@ -18,11 +18,12 @@ type GPT struct {
 }
 
 // SubmitTask sends a task (prompt) to the OpenAI ChatGPT API and returns all responses as a slice of strings.
-func (c *GPT) SubmitTask(ctx context.Context, task string) ([]string, error) {
+func (c *GPT) SubmitTask(ctx context.Context, task string, opts ...*Opt) ([]string, error) {
 	logger := c.logger.WithFields(logrus.Fields{
 		"task": task})
 	logger.Info("Submitting task to ChatGPT")
 
+	respFormat := getOpt[*openai.ChatCompletionResponseFormat](agentv1.LlmOptType_LLM_OPT_TYPE_GPTResponseFormat, opts...)
 	// Create a request for the OpenAI API
 	req := openai.ChatCompletionRequest{
 		Model: c.model, // Use the model specified for this llm
@@ -32,6 +33,7 @@ func (c *GPT) SubmitTask(ctx context.Context, task string) ([]string, error) {
 				Content: task,
 			},
 		},
+		ResponseFormat: respFormat,
 	}
 
 	// Call the OpenAI API and get the response

@@ -50,7 +50,12 @@ func (d *Dispatcher) Execute(task string, Agents []*agentv1.Agent, localLLM llm.
 	prompt = prompt + "\\n select a set of capabilities that an AI agent should have to solve this task, return a subset of capabilities that are needed to solve this task" +
 		"(minimum 1 and maximum 3)"
 
-	response, err := localLLM.SubmitTask(context.Background(), prompt, "json")
+	o := &llm.Opt{LlmOpt: &agentv1.LlmOpt{Typ: agentv1.LlmOptType_LLM_OPT_TYPE_OllamaResponseFormat}}
+	err = o.FromVal("json")
+	if err != nil {
+		d.logger.Fatal(err)
+	}
+	response, err := localLLM.SubmitTask(context.Background(), prompt, o)
 	if err != nil {
 		d.logger.Fatal(err)
 	}

@@ -22,8 +22,8 @@ type MockLlm struct {
 	mock.Mock
 }
 
-func (m *MockLlm) SubmitTask(ctx context.Context, task string, format string) (string, error) {
-	args := m.Called(ctx, task, format)
+func (m *MockLlm) SubmitTask(ctx context.Context, task string, opts ...*llm.Opt) (string, error) {
+	args := m.Called(ctx, task, opts)
 	return args.Get(0).(string), args.Error(1)
 }
 
@@ -75,7 +75,7 @@ func TestSubmitTask_Success(t *testing.T) {
 	task := "Test Task"
 	expectedResponse := "Task Response"
 
-	llmMock.On("SubmitTask", mock.Anything, task, "json").Return(expectedResponse, nil)
+	llmMock.On("SubmitTask", mock.Anything, task).Return(expectedResponse, nil)
 
 	// Start the test gRPC server
 	conn, cleanup, err := startTestServer(llmMock)
