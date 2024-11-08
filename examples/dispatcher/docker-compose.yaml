@@ -4,7 +4,8 @@ services:
     image: dispatcher
     restart: unless-stopped
     build:
-      context: ./dispatcher_gpt
+      context: ../../
+      dockerfile: ./examples/dispatcher/dispatcher_gpt/Dockerfile
     environment:
       - GRPC_PORT=3442
       - SERF_PORT=2222
@@ -15,7 +16,8 @@ services:
   summarizer:
     image: summarizer
     build:
-      context: ./summarizer_ollama
+      context: ../../
+      dockerfile: ./examples/dispatcher/summarizer_ollama/Dockerfile
     restart: unless-stopped
     links:
       - dispatcher
