@@ -11,18 +11,20 @@ message AgentInfo {
   // port is the port assigned to the workload
   string address = 1;
 
+  int32 port = 2;
+
   // description opaque description
-  string description = 2;
+  string description = 3;
 
-  repeated Capability capabilities = 3;
+  repeated Capability capabilities = 4;
 
-  repeated Tool tools = 4;
+  repeated Tool tools = 5;
 
-  string id = 5;
+  string id = 6;
 
-  float cost = 6;
+  float cost = 7;
 
-  float score = 7;
+  float score = 8;
 }
 
 message Capability{

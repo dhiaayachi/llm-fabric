@@ -2,7 +2,10 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"os"
+	"strconv"
+	"strings"
 	"time"
 
 	"github.com/dhiaayachi/llm-fabric/agent"
@@ -18,14 +21,25 @@ import (
 )
 
 func main() {
+
+	grpcPort, err := strconv.Atoi(os.Getenv("GRPC_PORT"))
+	if err != nil {
+		logrus.Fatalf("failed to parse GRPC_PORT as integer: %v", err)
+	}
+
+	serfPort, err := strconv.Atoi(os.Getenv("SERF_PORT"))
+	if err != nil {
+		logrus.Fatalf("failed to parse GRPC_PORT as integer: %v", err)
+	}
+
 	agentInfo := agentv1.AgentInfo{
 		Description: "Ollama agent_info",
 		Capabilities: []*agentv1.Capability{
 			{Id: "3", Description: "text generation"},
 		},
-		Tools:   make([]*agentv1.Tool, 0),
-		Id:      ulid.Make().String(),
-		Address: "127.0.0.1:3442",
+		Tools: make([]*agentv1.Tool, 0),
+		Id:    ulid.Make().String(),
+		Port:  int32(grpcPort),
 	}
 
 	logger := logrus.New()
@@ -35,14 +49,15 @@ func main() {
 
 	serfConf := serf.DefaultConfig()
 	serfConf.NodeName = agentInfo.Id
-	serfConf.MemberlistConfig.BindPort = 2226
+	serfConf.MemberlistConfig.BindPort = serfPort
 	dicso, err := discoverer.NewSerfDiscoverer(serfConf, s, logger)
 	if err != nil {
 		logrus.Fatal(err)
 	}
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
-	err = dicso.Join(ctx, []string{"0.0.0.0:2222", "0.0.0.0:2226"}, &agentInfo)
+	addrs := strings.Split(os.Getenv("SERF_JOIN_ADDRS"), " ")
+	err = dicso.Join(ctx, addrs, &agentInfo)
 	if err != nil {
 		logrus.Fatal(err)
 	}
@@ -56,7 +71,7 @@ func main() {
 		[]agentv1.Capability{{Id: "4", Description: "dispatch tasks to other agents"}},
 		[]agentv1.Tool{})
 
-	srv := agent.NewServer(l, &agent.Config{Logger: logger, ListenAddr: "0.0.0.0:3445"})
+	srv := agent.NewServer(l, &agent.Config{Logger: logger, ListenAddr: fmt.Sprintf("0.0.0.0:%d", grpcPort)})
 	srv.Start(ctx)
 
 	// Create fabric

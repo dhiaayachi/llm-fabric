@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"github.com/dhiaayachi/llm-fabric/agent"
 	"github.com/dhiaayachi/llm-fabric/discoverer"
 	"github.com/dhiaayachi/llm-fabric/discoverer/store"
@@ -13,10 +14,19 @@ import (
 	"github.com/sirupsen/logrus"
 	"net/http"
 	"net/url"
+	"os"
+	"strconv"
+	"strings"
 	"time"
 )
 
 func main() {
+
+	grpcPort, err := strconv.Atoi(os.Getenv("GRPC_PORT"))
+	if err != nil {
+		logrus.Fatalf("failed to parse GRPC_PORT as integer: %v", err)
+	}
+
 	agentInfo := agentinfo.AgentInfo{
 		Description: "Ollama agent_info",
 		Capabilities: []*agentinfo.Capability{
@@ -25,6 +35,7 @@ func main() {
 		},
 		Tools: make([]*agentinfo.Tool, 0),
 		Id:    ulid.Make().String(),
+		Port:  int32(grpcPort),
 	}
 
 	logger := logrus.New()
@@ -41,13 +52,14 @@ func main() {
 	}
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
-	err = dicso.Join(ctx, []string{"0.0.0.0:2222"}, &agentInfo)
+	addrs := strings.Split(os.Getenv("SERF_JOIN_ADDRS"), " ")
+	err = dicso.Join(ctx, addrs, &agentInfo)
 	if err != nil {
 		logrus.Fatal(err)
 	}
-	time.Sleep(10 * time.Second)
+	time.Sleep(1 * time.Second)
 	// Create local llm
-	parse, err := url.Parse("http://localhost:11434")
+	parse, err := url.Parse(os.Getenv("OLLAMA_URL"))
 	if err != nil {
 		logrus.Fatal(err)
 	}
@@ -59,7 +71,7 @@ func main() {
 		[]agentinfo.Capability{{Id: "4", Description: "dispatch tasks to other agents"}},
 		[]agentinfo.Tool{})
 
-	srv := agent.NewServer(l, &agent.Config{Logger: logger, ListenAddr: "0.0.0.0:3442"})
+	srv := agent.NewServer(l, &agent.Config{Logger: logger, ListenAddr: fmt.Sprintf("0.0.0.0:%d", grpcPort)})
 	srv.Start(ctx)
 	select {
 	case <-ctx.Done():

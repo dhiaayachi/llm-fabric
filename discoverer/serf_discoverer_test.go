@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"net"
 	"testing"
 	"time"
 
@@ -106,6 +107,8 @@ func TestConsumeEvts_ProcessUserEvent_StoreFailure(t *testing.T) {
 
 	mockStore.On("Store", mock.Anything, mock.Anything).Return(errors.New("store error"))
 	mockSerf.On("UserEvent", mock.Anything, mock.Anything, mock.Anything).Return(nil)
+	member := serf.Member{Name: "local-llm", Addr: net.ParseIP("127.0.0.1")}
+	mockSerf.On("LocalMember").Return(member)
 
 	agent := &agentinfo.AgentInfo{Id: "test-llm", Address: "127.0.0.1"}
 	payload, _ := proto.Marshal(agent)
@@ -123,6 +126,7 @@ func TestConsumeEvts_ProcessUserEvent_StoreFailure(t *testing.T) {
 		evtCh:  make(chan serf.Event, 1),
 		store:  mockStore,
 		logger: logger,
+		agent:  &agentinfo.AgentInfo{},
 	}
 
 	discoverer.evtCh <- mockEvent
@@ -142,7 +146,7 @@ func TestConsumeEvts_ProcessUserEvent(t *testing.T) {
 	mockStore := new(MockStore)
 	logger := setupLogger()
 
-	agent := &agentinfo.AgentInfo{Id: "test-llm", Address: "127.0.0.1"}
+	agent := &agentinfo.AgentInfo{Id: "test-llm"}
 	payload, _ := proto.Marshal(agent)
 	mockEvent := serf.UserEvent{Payload: payload}
 	mockStore.On("Store", mock.MatchedBy(func(a interface{}) bool {
@@ -153,12 +157,15 @@ func TestConsumeEvts_ProcessUserEvent(t *testing.T) {
 		return proto.Equal(a1, agent)
 	})).Return(nil)
 	mockSerf.On("UserEvent", mock.Anything, mock.Anything, mock.Anything).Return(nil)
+	member := serf.Member{Name: "local-llm", Addr: net.ParseIP("127.0.0.1")}
+	mockSerf.On("LocalMember").Return(member)
 
 	discoverer := &SerfDiscoverer{
 		serf:   mockSerf,
 		evtCh:  make(chan serf.Event, 1),
 		store:  mockStore,
 		logger: logger,
+		agent:  &agentinfo.AgentInfo{},
 	}
 
 	discoverer.evtCh <- mockEvent
@@ -187,6 +194,7 @@ func TestConsumeEvts_UnmarshalError(t *testing.T) {
 		evtCh:  make(chan serf.Event, 1),
 		store:  mockStore,
 		logger: logger,
+		agent:  &agentinfo.AgentInfo{},
 	}
 
 	discoverer.evtCh <- mockEvent
@@ -199,6 +207,8 @@ func TestConsumeEvts_UnmarshalError(t *testing.T) {
 	}()
 
 	mockSerf.On("UserEvent", mock.Anything, mock.Anything, mock.Anything).Return(nil)
+	member := serf.Member{Name: "local-llm", Addr: net.ParseIP("127.0.0.1")}
+	mockSerf.On("LocalMember").Return(member)
 
 	discoverer.run(ctx, discoverer.evtCh, time.Millisecond)
 
@@ -215,6 +225,7 @@ func TestConsumeEvts_UserEvent(t *testing.T) {
 		evtCh:  make(chan serf.Event, 1),
 		store:  mockStore,
 		logger: logger,
+		agent:  &agentinfo.AgentInfo{},
 	}
 
 	ctx, cancel := context.WithCancel(context.Background())
@@ -226,6 +237,8 @@ func TestConsumeEvts_UserEvent(t *testing.T) {
 	}()
 
 	mockSerf.On("UserEvent", mock.Anything, mock.Anything, mock.Anything).Return(fmt.Errorf("some error"))
+	member := serf.Member{Name: "local-llm", Addr: net.ParseIP("127.0.0.1")}
+	mockSerf.On("LocalMember").Return(member)
 
 	discoverer.run(ctx, discoverer.evtCh, time.Millisecond)
 
@@ -250,7 +263,8 @@ func TestNewSerfDiscoverer_Success(t *testing.T) {
 	conf.EventCh = e
 
 	mockSerf := new(MockSerf)
-	mockSerf.On("LocalMember").Return(serf.Member{Name: "local-llm"})
+	member := serf.Member{Name: "local-llm", Addr: net.ParseIP("127.0.0.1")}
+	mockSerf.On("LocalMember").Return(member)
 
 	// Assuming the serf.Create call has been mocked appropriately in actual tests or integration
 	discoverer, err := NewSerfDiscoverer(conf, mockStore, logger)
