@@ -43,7 +43,7 @@ func TestSubmitTask_Success(t *testing.T) {
 	ollamaClient := llm.NewOllama(client, logger, "test-model", "user", []agentinfo.Capability{}, []agentinfo.Tool{})
 
 	// Call SubmitTask
-	o := &agentinfo.LlmOpt{Typ: agentinfo.LlmOptType_LLM_OPT_TYPE_OllamaResponseFormat}
+	o := &agentinfo.LlmOpt{Typ: agentinfo.LlmOptType_LLM_OPT_TYPE_OLLAMA_RESPONSE_FORMAT}
 	err = llm.FromVal(o, "json")
 	require.NoError(t, err)
 	responses, err := ollamaClient.SubmitTask(context.Background(), "Hello", o)
@@ -66,7 +66,7 @@ func TestSubmitTask_Error(t *testing.T) {
 	ollamaClient := llm.NewOllama(client, logger, "test-model", "user", []agentinfo.Capability{}, []agentinfo.Tool{})
 
 	// Call SubmitTask and expect an error
-	o := &agentinfo.LlmOpt{Typ: agentinfo.LlmOptType_LLM_OPT_TYPE_OllamaResponseFormat}
+	o := &agentinfo.LlmOpt{Typ: agentinfo.LlmOptType_LLM_OPT_TYPE_OLLAMA_RESPONSE_FORMAT}
 	err = llm.FromVal(o, "json")
 	require.NoError(t, err)
 	responses, err := ollamaClient.SubmitTask(context.Background(), "Hello", o)

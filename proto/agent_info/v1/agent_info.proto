@@ -46,7 +46,7 @@ message Tool {
 
  message SubmitTaskRequest {
    string task = 1;
-   repeated llmOpt opts = 2;
+   repeated LlmOpt opts = 2;
  }
 
  message SubmitTaskResponse{
@@ -62,13 +62,13 @@ service AgentService{
   }
 }
 
-enum llmOptType{
-    LLM_OPT_TYPE_UNSPECIFIED = 0;
-    LLM_OPT_TYPE_OllamaResponseFormat = 1;
-    LLM_OPT_TYPE_GPTResponseFormat = 2;
+enum LlmOptType{
+  LLM_OPT_TYPE_UNSPECIFIED = 0;
+  LLM_OPT_TYPE_OLLAMA_RESPONSE_FORMAT = 1;
+  LLM_OPT_TYPE_GPT_RESPONSE_FORMAT = 2;
 }
 
-message llmOpt {
-  llmOptType typ = 1;
-  google.protobuf.Any llmOptVal = 2;
+message LlmOpt {
+  LlmOptType typ = 1;
+  google.protobuf.Any llm_opt_val = 2;
 }

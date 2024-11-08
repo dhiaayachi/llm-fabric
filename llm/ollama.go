@@ -27,7 +27,7 @@ func (c *OllamaClient) SubmitTask(ctx context.Context, task string, opts ...*age
 	})
 	logger.Info("Submitting task to Ollama")
 
-	respFormat := getOpt[string](agentinfo.LlmOptType_LLM_OPT_TYPE_OllamaResponseFormat, opts...)
+	respFormat := getOpt[string](agentinfo.LlmOptType_LLM_OPT_TYPE_OLLAMA_RESPONSE_FORMAT, opts...)
 
 	// Create a request using Ollama's client
 	req := &api.GenerateRequest{

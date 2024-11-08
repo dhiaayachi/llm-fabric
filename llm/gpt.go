@@ -26,7 +26,7 @@ func (c *GPT) SubmitTask(ctx context.Context, task string, opts ...*agentinfo.Ll
 		"task": task})
 	logger.Info("Submitting task to ChatGPT")
 
-	schema := getOpt[*jsonschema.Definition](agentinfo.LlmOptType_LLM_OPT_TYPE_GPTResponseFormat, opts...)
+	schema := getOpt[*jsonschema.Definition](agentinfo.LlmOptType_LLM_OPT_TYPE_GPT_RESPONSE_FORMAT, opts...)
 	var rspFormat *openai.ChatCompletionResponseFormat
 	if schema != nil {
 		rspFormat = &openai.ChatCompletionResponseFormat{

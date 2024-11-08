@@ -5,7 +5,7 @@ version: v2
 modules:
   # Each module entry defines a path, which must be relative to the directory where the
   # buf.yaml is located. You can also specify directories to exclude from a module.
-  - path: proto/agent_info/v1
+  - path: proto/
     # Modules can also optionally specify their Buf Schema Repository name if it exists.
     name: buf.build/llm-fabric/agent_info
     # Excluding a subdirectory and a specific .proto file. Note that the paths for exclusion
@@ -37,16 +37,3 @@ lint:
 breaking:
   use:
     - FILE
-# Optional Buf plugins. Can use to require custom lint or breaking change rules specified in a locally
-# installed plugin. Each Buf plugin is listed separately, and can include options if the plugin allows
-# for them. If a rule has its `default` value set to true, the rule will be checked against even if
-# the 'lint' and 'breaking' fields aren't set.
-#
-# See the example at https://github.com/bufbuild/bufplugin-go/blob/main/check/internal/example/cmd/buf-plugin-timestamp-suffix/main.go
-# for more detail about the sample below.
-plugins:
-  - plugin: plugin-timestamp-suffix # Specifies the installed plugin to use
-    options:
-      # The TIMESTAMP_SUFFIX rule specified above allows the user to change the suffix by providing a
-      # new value here.
-      timestamp_suffix: _time
