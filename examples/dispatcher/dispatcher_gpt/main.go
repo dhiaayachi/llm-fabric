@@ -2,6 +2,9 @@ package main
 
 import (
 	"context"
+	"os"
+	"time"
+
 	"github.com/dhiaayachi/llm-fabric/agent"
 	"github.com/dhiaayachi/llm-fabric/discoverer"
 	"github.com/dhiaayachi/llm-fabric/discoverer/store"
@@ -12,17 +15,12 @@ import (
 	"github.com/oklog/ulid/v2"
 	"github.com/sashabaranov/go-openai"
 	"github.com/sirupsen/logrus"
-	"os"
-	"time"
 )
 
 func main() {
-
 	agentInfo := agentv1.AgentInfo{
 		Description: "Ollama agent_info",
 		Capabilities: []*agentv1.Capability{
-			{Id: "1", Description: "text summarization"},
-			{Id: "2", Description: "image generation"},
 			{Id: "3", Description: "text generation"},
 		},
 		Tools:   make([]*agentv1.Tool, 0),
@@ -37,14 +35,14 @@ func main() {
 
 	serfConf := serf.DefaultConfig()
 	serfConf.NodeName = agentInfo.Id
-	serfConf.MemberlistConfig.BindPort = 2222
+	serfConf.MemberlistConfig.BindPort = 2226
 	dicso, err := discoverer.NewSerfDiscoverer(serfConf, s, logger)
 	if err != nil {
 		logrus.Fatal(err)
 	}
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
-	err = dicso.Join(context.Background(), []string{"localhost:2222"}, &agentInfo)
+	err = dicso.Join(ctx, []string{"0.0.0.0:2222", "0.0.0.0:2226"}, &agentInfo)
 	if err != nil {
 		logrus.Fatal(err)
 	}
@@ -58,7 +56,7 @@ func main() {
 		[]agentv1.Capability{{Id: "4", Description: "dispatch tasks to other agents"}},
 		[]agentv1.Tool{})
 
-	srv := agent.NewServer(l, &agent.Config{Logger: logger, ListenAddr: "0.0.0.0:3442"})
+	srv := agent.NewServer(l, &agent.Config{Logger: logger, ListenAddr: "0.0.0.0:3445"})
 	srv.Start(ctx)
 
 	// Create fabric
