@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/dhiaayachi/llm-fabric/agent"
 	"github.com/dhiaayachi/llm-fabric/discoverer"
 	"github.com/dhiaayachi/llm-fabric/discoverer/store"
 	"github.com/dhiaayachi/llm-fabric/fabric"
@@ -103,9 +104,23 @@ func (d *Dispatcher) Execute(task string, Agents []*agentv1.AgentInfo, localLLM 
 		}
 	}
 	if capabaleAgent == nil {
-		d.logger.Fatal(fmt.Errorf("could not find capability to solve"))
+		err := fmt.Errorf("could not find capability to solve")
+		d.logger.Fatal(err)
+		return nil
 	}
-
+	client, err := agent.GetClient(capabaleAgent.Address)
+	if err != nil {
+		d.logger.Fatal(err)
+		return nil
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
+	defer cancel()
+	taskResponse, err := client.SubmitTask(ctx, &agentv1.SubmitTaskRequest{Task: task})
+	if err != nil {
+		d.logger.Fatal(err)
+		return nil
+	}
+	d.logger.WithFields(logrus.Fields{"response": taskResponse}).Info("task completed!")
 	return nil
 }
 
@@ -115,15 +130,16 @@ func (d *Dispatcher) Finalize(_ []string) string {
 
 func main() {
 
-	agent := agentv1.AgentInfo{
+	agentInfo := agentv1.AgentInfo{
 		Description: "Ollama agent_info",
 		Capabilities: []*agentv1.Capability{
 			{Id: "1", Description: "text summarization"},
 			{Id: "2", Description: "image generation"},
 			{Id: "3", Description: "text generation"},
 		},
-		Tools: make([]*agentv1.Tool, 0),
-		Id:    ulid.Make().String(),
+		Tools:   make([]*agentv1.Tool, 0),
+		Id:      ulid.Make().String(),
+		Address: "127.0.0.1:3442",
 	}
 
 	logger := logrus.New()
@@ -132,18 +148,18 @@ func main() {
 	s := store.NewInMemoryStore()
 
 	serfConf := serf.DefaultConfig()
-	serfConf.NodeName = agent.Id
+	serfConf.NodeName = agentInfo.Id
 	serfConf.MemberlistConfig.BindPort = 2222
 	dicso, err := discoverer.NewSerfDiscoverer(serfConf, s, logger)
 	if err != nil {
 		logrus.Fatal(err)
 	}
-	err = dicso.Join(context.Background(), []string{"localhost:2222"}, &agent)
+	err = dicso.Join(context.Background(), []string{"localhost:2222"}, &agentInfo)
 	if err != nil {
 		logrus.Fatal(err)
 	}
+	time.Sleep(1 * time.Second)
 
-	time.Sleep(10 * time.Second)
 	// Create local llm
 	l := llm.NewGPT(openai.DefaultConfig(os.Getenv("OPENAI_TOKEN")),
 		logger,
@@ -152,10 +168,26 @@ func main() {
 		[]agentv1.Capability{{Id: "4", Description: "dispatch tasks to other agents"}},
 		[]agentv1.Tool{})
 
-	// Create fabric
+	srv := agent.NewServer(l, &agent.Config{Logger: logger, ListenAddr: "0.0.0.0:3442"})
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	srv.Start(ctx)
 
+	// Create fabric
 	f := fabric.NewFabric(dicso, &Dispatcher{logger: logger}, l)
-	_, err = f.SubmitTask(context.Background(), "Can you summarize this text?")
+	_, err = f.SubmitTask(context.Background(), "Can you summarize this text?: Johannes Gutenberg (1398 – 1468) "+
+		"was a German goldsmith and publisher who introduced printing to Europe. His introduction of mechanical "+
+		"movable type printing to Europe started the Printing Revolution and is widely regarded as the most important "+
+		"event of the modern period. It played a key role in the scientific revolution and laid the basis for the "+
+		"modern knowledge-based economy and the spread of learning to the masses.\\n\\nGutenberg many contributions "+
+		"to printing are: the invention of a process for mass-producing movable type, the use of oil-based ink for "+
+		"printing books, adjustable molds, and the use of a wooden printing press. His truly epochal invention was "+
+		"the combination of these elements into a practical system that allowed the mass production of printed books "+
+		"and was economically viable for printers and readers alike.\n\nIn Renaissance Europe, the arrival of mechanical "+
+		"movable type printing introduced the era of mass communication which permanently altered the structure"+
+		" of society. The relatively unrestricted circulation of information—including revolutionary ideas—transcended"+
+		" borders, and captured the masses in the Reformation. The sharp increase in literacy broke the monopoly "+
+		"of the literate elite on education and learning and bolstered the emerging middle class.")
 	if err != nil {
 		logrus.Fatal(err)
 	}

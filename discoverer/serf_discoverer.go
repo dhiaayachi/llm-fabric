@@ -50,15 +50,19 @@ func (s *SerfDiscoverer) Join(ctx context.Context, addresses []string, agent *ag
 
 func (s *SerfDiscoverer) run(ctx context.Context, ch chan serf.Event, tickDelay time.Duration) {
 	tick := time.NewTicker(tickDelay)
+	marshal, err := proto.Marshal(s.agent)
+	s.logger.WithField("module", moduleLog).Info("sending agent_info info")
+	if err != nil {
+		s.logger.WithError(err).Error("failed to marshal agent_info info")
+		return
+	}
+	err = s.serf.UserEvent("agent_info broadcast", marshal, true)
+	if err != nil {
+		s.logger.WithError(err).Error("failed to broadcast agent_info info")
+	}
 	for {
 		select {
 		case <-tick.C:
-			s.logger.WithField("module", moduleLog).Info("sending agent_info info")
-			marshal, err := proto.Marshal(s.agent)
-			if err != nil {
-				s.logger.WithError(err).Error("failed to marshal agent_info info")
-				continue
-			}
 			err = s.serf.UserEvent("agent_info broadcast", marshal, true)
 			if err != nil {
 				s.logger.WithError(err).Error("failed to broadcast agent_info info")

@@ -42,7 +42,7 @@ func startTestServer(llmMock llm.Llm) (*grpc.ClientConn, func(), error) {
 	bufSize := 1024 * 1024
 	lis := bufconn.Listen(bufSize)
 	s := grpc.NewServer()
-	agentServer := agent.NewServer(llmMock)
+	agentServer := agent.NewServer(llmMock, &agent.Config{})
 
 	agentinfo.RegisterAgentServiceServer(s, agentServer)
 	go func() {

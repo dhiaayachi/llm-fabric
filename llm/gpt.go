@@ -25,9 +25,9 @@ func (c *GPT) SubmitTask(ctx context.Context, task string, opts ...*agentinfo.Ll
 	logger.Info("Submitting task to ChatGPT")
 
 	schema := getOpt[*jsonschema.Definition](agentinfo.LlmOptType_LLM_OPT_TYPE_GPTResponseFormat, opts...)
-	var rspFormat openai.ChatCompletionResponseFormat
+	var rspFormat *openai.ChatCompletionResponseFormat
 	if schema != nil {
-		rspFormat = openai.ChatCompletionResponseFormat{
+		rspFormat = &openai.ChatCompletionResponseFormat{
 			Type: openai.ChatCompletionResponseFormatTypeJSONSchema,
 			JSONSchema: &openai.ChatCompletionResponseFormatJSONSchema{
 				Name:   "capabilities",
@@ -45,7 +45,7 @@ func (c *GPT) SubmitTask(ctx context.Context, task string, opts ...*agentinfo.Ll
 				Content: task,
 			},
 		},
-		ResponseFormat: &rspFormat,
+		ResponseFormat: rspFormat,
 	}
 
 	// Call the OpenAI API and get the response
