@@ -12,5 +12,5 @@ type TaskAgent struct {
 
 type Strategy interface {
 	Execute(task string, Agents []*agentinfo.AgentInfo, localLLM llm.Llm) []*TaskAgent
-	Finalize(responses []string) string
+	Finalize(responses []string, localLLM llm.Llm) string
 }

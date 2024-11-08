@@ -108,24 +108,15 @@ func (d *Dispatcher) Execute(task string, Agents []*agentv1.AgentInfo, localLLM 
 		d.logger.Fatal(err)
 		return nil
 	}
-	client, err := agent.GetClient(capabaleAgent.Address)
-	if err != nil {
-		d.logger.Fatal(err)
-		return nil
-	}
-	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
-	defer cancel()
-	taskResponse, err := client.SubmitTask(ctx, &agentv1.SubmitTaskRequest{Task: task})
-	if err != nil {
-		d.logger.Fatal(err)
-		return nil
-	}
-	d.logger.WithFields(logrus.Fields{"response": taskResponse}).Info("task completed!")
-	return nil
+	return []*strategy.TaskAgent{{Agent: capabaleAgent, Task: task}}
 }
 
-func (d *Dispatcher) Finalize(_ []string) string {
-	return ""
+func (d *Dispatcher) Finalize(responses []string, _ llm.Llm) string {
+	r := ""
+	for _, response := range responses {
+		r += response
+	}
+	return r
 }
 
 func main() {
@@ -175,7 +166,7 @@ func main() {
 
 	// Create fabric
 	f := fabric.NewFabric(dicso, &Dispatcher{logger: logger}, l)
-	_, err = f.SubmitTask(context.Background(), "Can you summarize this text?: Johannes Gutenberg (1398 – 1468) "+
+	response, err := f.SubmitTask(context.Background(), "Can you summarize this text?: Johannes Gutenberg (1398 – 1468) "+
 		"was a German goldsmith and publisher who introduced printing to Europe. His introduction of mechanical "+
 		"movable type printing to Europe started the Printing Revolution and is widely regarded as the most important "+
 		"event of the modern period. It played a key role in the scientific revolution and laid the basis for the "+
@@ -191,4 +182,6 @@ func main() {
 	if err != nil {
 		logrus.Fatal(err)
 	}
+
+	logger.WithField("response", response).Info("final response!")
 }
