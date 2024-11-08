@@ -70,9 +70,9 @@ func TestJoin_Success(t *testing.T) {
 		logger: logger,
 	}
 
-	ctx := context.Background()
+	ctx, cancel := context.WithCancel(context.Background())
 	err := discoverer.Join(ctx, []string{"127.0.0.1"}, &agentinfo.AgentInfo{})
-
+	defer cancel()
 	assert.NoError(t, err, "Join should not return an error")
 	mockSerf.AssertExpectations(t)
 }
@@ -91,14 +91,15 @@ func TestJoin_Failure(t *testing.T) {
 		logger: logger,
 	}
 
-	ctx := context.Background()
+	ctx, cancel := context.WithCancel(context.Background())
 	err := discoverer.Join(ctx, []string{"127.0.0.1"}, &agentinfo.AgentInfo{})
-
+	defer cancel()
 	assert.Error(t, err, "Join should return an error on failure")
 	mockSerf.AssertExpectations(t)
 }
 
 func TestConsumeEvts_ProcessUserEvent_StoreFailure(t *testing.T) {
+	time.Sleep(1 * time.Second)
 	mockSerf := new(MockSerf)
 	mockStore := new(MockStore)
 	logger := setupLogger()
@@ -133,7 +134,7 @@ func TestConsumeEvts_ProcessUserEvent_StoreFailure(t *testing.T) {
 		cancel() // Stop the goroutine after some time to prevent an infinite loop in tests
 	}()
 
-	discoverer.run(ctx, discoverer.evtCh, time.Millisecond)
+	discoverer.run(ctx, discoverer.evtCh, 1000*time.Millisecond)
 }
 
 func TestConsumeEvts_ProcessUserEvent(t *testing.T) {

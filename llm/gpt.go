@@ -18,6 +18,8 @@ type GPT struct {
 	tools        []agentinfo.Tool
 }
 
+var _ Llm = &GPT{}
+
 // SubmitTask sends a task (prompt) to the OpenAI ChatGPT API and returns all responses as a slice of strings.
 func (c *GPT) SubmitTask(ctx context.Context, task string, opts ...*agentinfo.LlmOpt) (string, error) {
 	logger := c.logger.WithFields(logrus.Fields{

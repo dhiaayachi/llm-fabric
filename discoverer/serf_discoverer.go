@@ -37,8 +37,6 @@ func (s *SerfDiscoverer) Join(ctx context.Context, addresses []string, agent *ag
 		s.logger.WithError(err).WithField("module", moduleLog).Error("failed to join Serf cluster")
 		return err
 	}
-	ctx, cancel := context.WithCancel(ctx)
-	s.cancel = cancel
 	s.logger.WithFields(logrus.Fields{
 		"module":    moduleLog,
 		"addresses": addresses,
@@ -49,24 +47,21 @@ func (s *SerfDiscoverer) Join(ctx context.Context, addresses []string, agent *ag
 }
 
 func (s *SerfDiscoverer) run(ctx context.Context, ch chan serf.Event, tickDelay time.Duration) {
-	tick := time.NewTicker(tickDelay)
+	after := time.After(1 * time.Millisecond)
 	marshal, err := proto.Marshal(s.agent)
 	s.logger.WithField("module", moduleLog).Info("sending agent_info info")
 	if err != nil {
 		s.logger.WithError(err).Error("failed to marshal agent_info info")
 		return
 	}
-	err = s.serf.UserEvent("agent_info broadcast", marshal, true)
-	if err != nil {
-		s.logger.WithError(err).Error("failed to broadcast agent_info info")
-	}
 	for {
 		select {
-		case <-tick.C:
+		case <-after:
 			err = s.serf.UserEvent("agent_info broadcast", marshal, true)
 			if err != nil {
 				s.logger.WithError(err).Error("failed to broadcast agent_info info")
 			}
+			after = time.After(tickDelay)
 		case <-ctx.Done():
 			s.logger.WithField("module", moduleLog).Info("context cancelled, stopping event consumption")
 			return

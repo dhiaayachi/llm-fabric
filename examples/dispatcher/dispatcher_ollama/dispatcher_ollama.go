@@ -71,7 +71,7 @@ func (d *Dispatcher) Execute(task string, Agents []*agentinfo.AgentInfo, localLL
 	return nil
 }
 
-func (d *Dispatcher) Finalize(_ []string) string {
+func (d *Dispatcher) Finalize(_ []string, _ llm.Llm) string {
 	return ""
 }
 
@@ -100,7 +100,9 @@ func main() {
 	if err != nil {
 		logrus.Fatal(err)
 	}
-	err = dicso.Join(context.Background(), []string{"localhost:2222"}, &agent)
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	err = dicso.Join(ctx, []string{"localhost:2222"}, &agent)
 	if err != nil {
 		logrus.Fatal(err)
 	}
