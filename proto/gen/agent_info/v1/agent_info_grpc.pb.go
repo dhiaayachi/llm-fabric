@@ -2,9 +2,9 @@
 // versions:
 // - protoc-gen-go-grpc v1.5.1
 // - protoc             (unknown)
-// source: agent.proto
+// source: agent_info.proto
 
-package agent
+package agent_info
 
 import (
 	context "context"
@@ -19,7 +19,7 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	AgentService_SubmitTask_FullMethodName = "/agent.v1.AgentService/SubmitTask"
+	AgentService_SubmitTask_FullMethodName = "/agent_info.v1.AgentService/SubmitTask"
 )
 
 // AgentServiceClient is the client API for AgentService service.
@@ -108,7 +108,7 @@ func _AgentService_SubmitTask_Handler(srv interface{}, ctx context.Context, dec 
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
 var AgentService_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "agent.v1.AgentService",
+	ServiceName: "agent_info.v1.AgentService",
 	HandlerType: (*AgentServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
@@ -117,5 +117,5 @@ var AgentService_ServiceDesc = grpc.ServiceDesc{
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "agent.proto",
+	Metadata: "agent_info.proto",
 }

@@ -3,7 +3,7 @@ package llm
 import (
 	"context"
 	"encoding/json"
-	agentv1 "github.com/dhiaayachi/llm-fabric/proto/gen/agent/v1"
+	agentinfo "github.com/dhiaayachi/llm-fabric/proto/gen/agent_info/v1"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/anypb"
 	"google.golang.org/protobuf/types/known/wrapperspb"
@@ -11,31 +11,28 @@ import (
 
 type Llm interface {
 	// SubmitTask TODO: task need to be changed to proto eventually
-	SubmitTask(ctx context.Context, task string, opts ...*Opt) (response string, err error)
-	GetCapabilities() []agentv1.Capability // Abilities or features the llm supports
-	GetTools() []agentv1.Tool              // Abilities or features the llm supports
+	SubmitTask(ctx context.Context, task string, opts ...*agentinfo.LlmOpt) (response string, err error)
+	GetCapabilities() []agentinfo.Capability // Abilities or features the llm supports
+	GetTools() []agentinfo.Tool              // Abilities or features the llm supports
 }
 
-func getOpt[T any](typ agentv1.LlmOptType, opts ...*Opt) T {
+func getOpt[T any](typ agentinfo.LlmOptType, opts ...*agentinfo.LlmOpt) T {
 	var empty T
 	for _, o := range opts {
 		if o.Typ == typ {
-			val, err := o.GetVal()
+
+			val, err := GetVal[T](o)
 			if err != nil {
 				return empty
 			}
-			return val.(T)
+			return val
 		}
 	}
 	return empty
 }
 
-type Opt struct {
-	*agentv1.LlmOpt
-}
-
-func (o *Opt) GetVal() (interface{}, error) {
-	var value interface{}
+func GetVal[T any](o *agentinfo.LlmOpt) (T, error) {
+	var value T
 	bytesValue := &wrapperspb.BytesValue{}
 	err := anypb.UnmarshalTo(o.GetLlmOptVal(), bytesValue, proto.UnmarshalOptions{})
 	if err != nil {
@@ -48,7 +45,7 @@ func (o *Opt) GetVal() (interface{}, error) {
 	return value, nil
 }
 
-func (o *Opt) FromVal(v interface{}) error {
+func FromVal[T any](o *agentinfo.LlmOpt, v T) error {
 	anyValue := &anypb.Any{}
 	bytes, _ := json.Marshal(v)
 	bytesValue := &wrapperspb.BytesValue{

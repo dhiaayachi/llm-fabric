@@ -5,9 +5,9 @@ version: v2
 modules:
   # Each module entry defines a path, which must be relative to the directory where the
   # buf.yaml is located. You can also specify directories to exclude from a module.
-  - path: proto/agent/v1
+  - path: proto/agent_info/v1
     # Modules can also optionally specify their Buf Schema Repository name if it exists.
-    name: buf.build/llm-fabric/agent
+    name: buf.build/llm-fabric/agent_info
     # Excluding a subdirectory and a specific .proto file. Note that the paths for exclusion
     # are relative to the buf.yaml file.
     # A module can have its own lint and breaking configuration, which overrides the default

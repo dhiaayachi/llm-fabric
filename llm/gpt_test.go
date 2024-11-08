@@ -3,7 +3,7 @@ package llm
 import (
 	"context"
 	"encoding/json"
-	agentv1 "github.com/dhiaayachi/llm-fabric/proto/gen/agent/v1"
+	agentinfo "github.com/dhiaayachi/llm-fabric/proto/gen/agent_info/v1"
 	"github.com/stretchr/testify/require"
 	"net/http"
 	"net/http/httptest"
@@ -42,12 +42,12 @@ func TestSubmitTask_Success(t *testing.T) {
 	logger.SetLevel(logrus.DebugLevel)
 
 	// Create GPT instance
-	gpt := NewGPT(clientConfig, logger, "gpt-3.5-turbo", "user", []agentv1.Capability{}, []agentv1.Tool{})
+	gpt := NewGPT(clientConfig, logger, "gpt-3.5-turbo", "user", []agentinfo.Capability{}, []agentinfo.Tool{})
 
 	// Call SubmitTask and assert the response
 	responses, err := gpt.SubmitTask(context.Background(), "Test prompt")
 	assert.NoError(t, err)
-	assert.Equal(t, []string{"Response 1", "Response 2"}, responses)
+	assert.Equal(t, "Response 1Response 2", responses)
 }
 
 // TestSubmitTask_NoChoices tests the SubmitTask method when no choices are returned.
@@ -73,12 +73,12 @@ func TestSubmitTask_NoChoices(t *testing.T) {
 	logger := logrus.New()
 	logger.SetLevel(logrus.DebugLevel)
 
-	gpt := NewGPT(clientConfig, logger, "gpt-3.5-turbo", "user", []agentv1.Capability{}, []agentv1.Tool{})
+	gpt := NewGPT(clientConfig, logger, "gpt-3.5-turbo", "user", []agentinfo.Capability{}, []agentinfo.Tool{})
 
 	// Call SubmitTask and assert an error is returned
 	responses, err := gpt.SubmitTask(context.Background(), "Test prompt")
 	assert.Error(t, err)
-	assert.Nil(t, responses)
+	assert.Empty(t, responses)
 	assert.Contains(t, err.Error(), "no response from ChatGPT")
 }
 
@@ -100,12 +100,12 @@ func TestSubmitTask_ErrorFromAPI(t *testing.T) {
 	logger := logrus.New()
 	logger.SetLevel(logrus.DebugLevel)
 
-	gpt := NewGPT(clientConfig, logger, "gpt-3.5-turbo", "user", []agentv1.Capability{}, []agentv1.Tool{})
+	gpt := NewGPT(clientConfig, logger, "gpt-3.5-turbo", "user", []agentinfo.Capability{}, []agentinfo.Tool{})
 
 	// Call SubmitTask and assert an error is returned
 	responses, err := gpt.SubmitTask(context.Background(), "Test prompt")
 	assert.Error(t, err)
-	assert.Nil(t, responses)
+	assert.Empty(t, responses)
 	assert.Contains(t, err.Error(), "failed to submit task to ChatGPT")
 }
 
@@ -114,12 +114,12 @@ func TestGetCapabilities(t *testing.T) {
 	logger := logrus.New()
 	logger.SetLevel(logrus.DebugLevel)
 
-	capabilities := []agentv1.Capability{
+	capabilities := []agentinfo.Capability{
 		{Id: "1", Description: "Text generation"},
 		{Id: "2", Description: "Text summarization"},
 	}
 
-	gpt := NewGPT(openai.ClientConfig{}, logger, "gpt-3.5-turbo", "user", capabilities, []agentv1.Tool{})
+	gpt := NewGPT(openai.ClientConfig{}, logger, "gpt-3.5-turbo", "user", capabilities, []agentinfo.Tool{})
 
 	// Call GetCapabilities and assert the response
 	result := gpt.GetCapabilities()
@@ -131,12 +131,12 @@ func TestGetTools(t *testing.T) {
 	logger := logrus.New()
 	logger.SetLevel(logrus.DebugLevel)
 
-	tools := []agentv1.Tool{
+	tools := []agentinfo.Tool{
 		{Name: "Tool 1"},
 		{Name: "Tool 2"},
 	}
 
-	gpt := NewGPT(openai.ClientConfig{}, logger, "gpt-3.5-turbo", "user", []agentv1.Capability{}, tools)
+	gpt := NewGPT(openai.ClientConfig{}, logger, "gpt-3.5-turbo", "user", []agentinfo.Capability{}, tools)
 
 	// Call GetTools and assert the response
 	result := gpt.GetTools()
@@ -148,10 +148,10 @@ func TestNewGPT(t *testing.T) {
 	logger := logrus.New()
 	logger.SetLevel(logrus.DebugLevel)
 
-	capabilities := []agentv1.Capability{
+	capabilities := []agentinfo.Capability{
 		{Id: "1", Description: "Text generation"},
 	}
-	tools := []agentv1.Tool{
+	tools := []agentinfo.Tool{
 		{Name: "Tool 1"},
 	}
 

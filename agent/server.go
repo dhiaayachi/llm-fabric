@@ -3,23 +3,19 @@ package agent
 import (
 	"context"
 	"github.com/dhiaayachi/llm-fabric/llm"
-	agentv1 "github.com/dhiaayachi/llm-fabric/proto/gen/agent/v1"
+	agentinfo "github.com/dhiaayachi/llm-fabric/proto/gen/agent_info/v1"
 	"google.golang.org/grpc"
 )
 
 type Server struct {
-	agentv1.UnimplementedAgentServiceServer
+	agentinfo.UnimplementedAgentServiceServer
 	srv *grpc.Server
 	llm llm.Llm
 }
 
-func (s Server) SubmitTask(ctx context.Context, request *agentv1.SubmitTaskRequest) (*agentv1.SubmitTaskResponse, error) {
-	resp := &agentv1.SubmitTaskResponse{}
-	opts := make([]*llm.Opt, 0)
-	for _, opt := range request.Opts {
-		opts = append(opts, &llm.Opt{LlmOpt: opt})
-	}
-	response, err := s.llm.SubmitTask(ctx, request.Task, opts...)
+func (s *Server) SubmitTask(ctx context.Context, request *agentinfo.SubmitTaskRequest) (*agentinfo.SubmitTaskResponse, error) {
+	resp := &agentinfo.SubmitTaskResponse{}
+	response, err := s.llm.SubmitTask(ctx, request.Task, request.Opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -27,10 +23,10 @@ func (s Server) SubmitTask(ctx context.Context, request *agentv1.SubmitTaskReque
 	return resp, nil
 }
 
-var _ agentv1.AgentServiceServer = &Server{}
+var _ agentinfo.AgentServiceServer = &Server{}
 
 func NewServer(llm llm.Llm) *Server {
 	srv := Server{srv: grpc.NewServer(), llm: llm}
-	srv.srv.RegisterService(&agentv1.AgentService_ServiceDesc, srv)
+	srv.srv.RegisterService(&agentinfo.AgentService_ServiceDesc, &srv)
 	return &srv
 }

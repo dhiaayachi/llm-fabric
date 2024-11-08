@@ -10,7 +10,7 @@ import (
 	"testing"
 
 	"github.com/dhiaayachi/llm-fabric/llm"
-	agentv1 "github.com/dhiaayachi/llm-fabric/proto/gen/agent/v1"
+	agentinfo "github.com/dhiaayachi/llm-fabric/proto/gen/agent_info/v1"
 	"github.com/ollama/ollama/api"
 	_ "github.com/sirupsen/logrus"
 	"github.com/sirupsen/logrus/hooks/test"
@@ -40,11 +40,11 @@ func TestSubmitTask_Success(t *testing.T) {
 	parsedURL, err := url.Parse(server.URL)
 	require.NoError(t, err)
 	client := api.NewClient(parsedURL, http.DefaultClient)
-	ollamaClient := llm.NewOllama(client, logger, "test-model", "user", []agentv1.Capability{}, []agentv1.Tool{})
+	ollamaClient := llm.NewOllama(client, logger, "test-model", "user", []agentinfo.Capability{}, []agentinfo.Tool{})
 
 	// Call SubmitTask
-	o := &llm.Opt{LlmOpt: &agentv1.LlmOpt{Typ: agentv1.LlmOptType_LLM_OPT_TYPE_OllamaResponseFormat}}
-	err = o.FromVal("json")
+	o := &agentinfo.LlmOpt{Typ: agentinfo.LlmOptType_LLM_OPT_TYPE_OllamaResponseFormat}
+	err = llm.FromVal(o, "json")
 	require.NoError(t, err)
 	responses, err := ollamaClient.SubmitTask(context.Background(), "Hello", o)
 	assert.NoError(t, err)
@@ -63,11 +63,11 @@ func TestSubmitTask_Error(t *testing.T) {
 	parsedURL, err := url.Parse(server.URL)
 	require.NoError(t, err)
 	client := api.NewClient(parsedURL, http.DefaultClient)
-	ollamaClient := llm.NewOllama(client, logger, "test-model", "user", []agentv1.Capability{}, []agentv1.Tool{})
+	ollamaClient := llm.NewOllama(client, logger, "test-model", "user", []agentinfo.Capability{}, []agentinfo.Tool{})
 
 	// Call SubmitTask and expect an error
-	o := &llm.Opt{LlmOpt: &agentv1.LlmOpt{Typ: agentv1.LlmOptType_LLM_OPT_TYPE_OllamaResponseFormat}}
-	err = o.FromVal("json")
+	o := &agentinfo.LlmOpt{Typ: agentinfo.LlmOptType_LLM_OPT_TYPE_OllamaResponseFormat}
+	err = llm.FromVal(o, "json")
 	require.NoError(t, err)
 	responses, err := ollamaClient.SubmitTask(context.Background(), "Hello", o)
 	assert.Error(t, err)
@@ -84,8 +84,8 @@ func TestGetCapabilities(t *testing.T) {
 	parsedURL, err := url.Parse("http://localhost")
 	require.NoError(t, err)
 	client := api.NewClient(parsedURL, nil)
-	capabilities := []agentv1.Capability{{Id: "1", Description: "text generation"}}
-	ollamaClient := llm.NewOllama(client, logger, "test-model", "user", capabilities, []agentv1.Tool{})
+	capabilities := []agentinfo.Capability{{Id: "1", Description: "text generation"}}
+	ollamaClient := llm.NewOllama(client, logger, "test-model", "user", capabilities, []agentinfo.Tool{})
 
 	// Call GetCapabilities
 	retrievedCapabilities := ollamaClient.GetCapabilities()
@@ -101,8 +101,8 @@ func TestGetTools(t *testing.T) {
 	parsedURL, err := url.Parse("http://localhost")
 	require.NoError(t, err)
 	client := api.NewClient(parsedURL, nil) // URL isn't relevant here
-	tools := []agentv1.Tool{{Name: "Tool1"}}
-	ollamaClient := llm.NewOllama(client, logger, "test-model", "user", []agentv1.Capability{}, tools)
+	tools := []agentinfo.Tool{{Name: "Tool1"}}
+	ollamaClient := llm.NewOllama(client, logger, "test-model", "user", []agentinfo.Capability{}, tools)
 
 	// Call GetTools
 	retrievedTools := ollamaClient.GetTools()

@@ -3,7 +3,7 @@ package discoverer
 import (
 	"context"
 	"github.com/dhiaayachi/llm-fabric/discoverer/store"
-	agentv1 "github.com/dhiaayachi/llm-fabric/proto/gen/agent/v1"
+	agentinfo "github.com/dhiaayachi/llm-fabric/proto/gen/agent_info/v1"
 	"github.com/hashicorp/serf/serf"
 	"github.com/sirupsen/logrus"
 	"google.golang.org/protobuf/proto"
@@ -24,14 +24,14 @@ type SerfDiscoverer struct {
 	cancel context.CancelFunc
 	store  store.Store
 	logger *logrus.Logger
-	agent  *agentv1.Agent
+	agent  *agentinfo.AgentInfo
 }
 
-func (s *SerfDiscoverer) GetAgents() []*agentv1.Agent {
+func (s *SerfDiscoverer) GetAgents() []*agentinfo.AgentInfo {
 	return s.store.GetAll()
 }
 
-func (s *SerfDiscoverer) Join(ctx context.Context, addresses []string, agent *agentv1.Agent) error {
+func (s *SerfDiscoverer) Join(ctx context.Context, addresses []string, agent *agentinfo.AgentInfo) error {
 	_, err := s.serf.Join(addresses, true)
 	if err != nil {
 		s.logger.WithError(err).WithField("module", moduleLog).Error("failed to join Serf cluster")
@@ -53,15 +53,15 @@ func (s *SerfDiscoverer) run(ctx context.Context, ch chan serf.Event, tickDelay 
 	for {
 		select {
 		case <-tick.C:
-			s.logger.WithField("module", moduleLog).Info("sending agent info")
+			s.logger.WithField("module", moduleLog).Info("sending agent_info info")
 			marshal, err := proto.Marshal(s.agent)
 			if err != nil {
-				s.logger.WithError(err).Error("failed to marshal agent info")
+				s.logger.WithError(err).Error("failed to marshal agent_info info")
 				continue
 			}
-			err = s.serf.UserEvent("agent broadcast", marshal, true)
+			err = s.serf.UserEvent("agent_info broadcast", marshal, true)
 			if err != nil {
-				s.logger.WithError(err).Error("failed to broadcast agent info")
+				s.logger.WithError(err).Error("failed to broadcast agent_info info")
 			}
 		case <-ctx.Done():
 			s.logger.WithField("module", moduleLog).Info("context cancelled, stopping event consumption")
@@ -75,7 +75,7 @@ func (s *SerfDiscoverer) run(ctx context.Context, ch chan serf.Event, tickDelay 
 			switch evt.(type) {
 			case serf.UserEvent:
 				ue := evt.(serf.UserEvent)
-				agent := agentv1.Agent{}
+				agent := agentinfo.AgentInfo{}
 
 				err := proto.Unmarshal(ue.Payload, &agent)
 				if err != nil {

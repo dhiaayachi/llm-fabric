@@ -2,15 +2,15 @@ package strategy
 
 import (
 	"github.com/dhiaayachi/llm-fabric/llm"
-	agentv1 "github.com/dhiaayachi/llm-fabric/proto/gen/agent/v1"
+	agentinfo "github.com/dhiaayachi/llm-fabric/proto/gen/agent_info/v1"
 )
 
 type TaskAgent struct {
 	Task  string
-	Agent *agentv1.Agent
+	Agent *agentinfo.AgentInfo
 }
 
 type Strategy interface {
-	Execute(task string, Agents []*agentv1.Agent, localLLM llm.Llm) []*TaskAgent
+	Execute(task string, Agents []*agentinfo.AgentInfo, localLLM llm.Llm) []*TaskAgent
 	Finalize(responses []string) string
 }

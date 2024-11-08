@@ -4,7 +4,7 @@ import (
 	"context"
 	"github.com/dhiaayachi/llm-fabric/discoverer"
 	"github.com/dhiaayachi/llm-fabric/llm"
-	agentv1 "github.com/dhiaayachi/llm-fabric/proto/gen/agent/v1"
+	agentinfo "github.com/dhiaayachi/llm-fabric/proto/gen/agent_info/v1"
 	"github.com/dhiaayachi/llm-fabric/strategy"
 	"google.golang.org/grpc"
 )
@@ -27,8 +27,8 @@ func (f Fabric) SubmitTask(ctx context.Context, task string) (string, error) {
 		if err != nil {
 			return "", err
 		}
-		client := agentv1.NewAgentServiceClient(conn)
-		response, err := client.SubmitTask(ctx, &agentv1.SubmitTaskRequest{Task: taskAgent.Task})
+		client := agentinfo.NewAgentServiceClient(conn)
+		response, err := client.SubmitTask(ctx, &agentinfo.SubmitTaskRequest{Task: taskAgent.Task})
 		if err != nil {
 			return "", err
 		}

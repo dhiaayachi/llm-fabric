@@ -3,7 +3,7 @@ package llm
 import (
 	"context"
 	"fmt"
-	agentv1 "github.com/dhiaayachi/llm-fabric/proto/gen/agent/v1"
+	agentinfo "github.com/dhiaayachi/llm-fabric/proto/gen/agent_info/v1"
 	"github.com/ollama/ollama/api"
 	"github.com/sirupsen/logrus"
 )
@@ -14,20 +14,20 @@ type OllamaClient struct {
 	logger       *logrus.Entry
 	model        string
 	role         string
-	capabilities []agentv1.Capability
-	tools        []agentv1.Tool
+	capabilities []agentinfo.Capability
+	tools        []agentinfo.Tool
 }
 
 var _ Llm = &OllamaClient{}
 
 // SubmitTask sends a task (prompt) to the Ollama API and returns all responses as a slice of strings.
-func (c *OllamaClient) SubmitTask(ctx context.Context, task string, opts ...*Opt) (string, error) {
+func (c *OllamaClient) SubmitTask(ctx context.Context, task string, opts ...*agentinfo.LlmOpt) (string, error) {
 	logger := c.logger.WithFields(logrus.Fields{
 		"task": task,
 	})
 	logger.Info("Submitting task to Ollama")
 
-	respFormat := getOpt[string](agentv1.LlmOptType_LLM_OPT_TYPE_OllamaResponseFormat, opts...)
+	respFormat := getOpt[string](agentinfo.LlmOptType_LLM_OPT_TYPE_OllamaResponseFormat, opts...)
 
 	// Create a request using Ollama's client
 	req := &api.GenerateRequest{
@@ -56,19 +56,19 @@ func (c *OllamaClient) SubmitTask(ctx context.Context, task string, opts ...*Opt
 }
 
 // GetCapabilities returns the predefined capabilities of the Ollama client.
-func (c *OllamaClient) GetCapabilities() []agentv1.Capability {
+func (c *OllamaClient) GetCapabilities() []agentinfo.Capability {
 	c.logger.Info("Retrieving capabilities of Ollama client")
 	return c.capabilities
 }
 
 // GetTools returns the predefined tools of the Ollama client.
-func (c *OllamaClient) GetTools() []agentv1.Tool {
+func (c *OllamaClient) GetTools() []agentinfo.Tool {
 	c.logger.Info("Retrieving tools of Ollama client")
 	return c.tools
 }
 
 // NewOllama creates a new instance of OllamaClient with the given configuration, logger, model, and role.
-func NewOllama(apiClient *api.Client, logger *logrus.Logger, model, role string, capabilities []agentv1.Capability, tools []agentv1.Tool) *OllamaClient {
+func NewOllama(apiClient *api.Client, logger *logrus.Logger, model, role string, capabilities []agentinfo.Capability, tools []agentinfo.Tool) *OllamaClient {
 	entry := logger.WithFields(logrus.Fields{
 		"module": "OllamaClient",
 		"model":  model,

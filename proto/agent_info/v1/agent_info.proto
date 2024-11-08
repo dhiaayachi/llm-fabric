@@ -1,12 +1,12 @@
 syntax = "proto3";
 
-package agent.v1;
+package agent_info.v1;
 
 import "google/api/annotations.proto";
 import "google/protobuf/any.proto";
 
-option go_package = "github.com/dhiaayachi/llm-fabric/proto/gen/agent";
-message Agent {
+option go_package = "github.com/dhiaayachi/llm-fabric/proto/gen/agent_info";
+message AgentInfo {
 
   // port is the port assigned to the workload
   string address = 1;

@@ -8,7 +8,7 @@ import (
 
 	"github.com/dhiaayachi/llm-fabric/agent"
 	"github.com/dhiaayachi/llm-fabric/llm"
-	agentv1 "github.com/dhiaayachi/llm-fabric/proto/gen/agent/v1"
+	agentinfo "github.com/dhiaayachi/llm-fabric/proto/gen/agent_info/v1"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"google.golang.org/grpc"
@@ -22,19 +22,19 @@ type MockLlm struct {
 	mock.Mock
 }
 
-func (m *MockLlm) SubmitTask(ctx context.Context, task string, opts ...*llm.Opt) (string, error) {
+func (m *MockLlm) SubmitTask(ctx context.Context, task string, opts ...*agentinfo.LlmOpt) (string, error) {
 	args := m.Called(ctx, task, opts)
 	return args.Get(0).(string), args.Error(1)
 }
 
-func (m *MockLlm) GetCapabilities() []agentv1.Capability {
+func (m *MockLlm) GetCapabilities() []agentinfo.Capability {
 	args := m.Called()
-	return args.Get(0).([]agentv1.Capability)
+	return args.Get(0).([]agentinfo.Capability)
 }
 
-func (m *MockLlm) GetTools() []agentv1.Tool {
+func (m *MockLlm) GetTools() []agentinfo.Tool {
 	args := m.Called()
-	return args.Get(0).([]agentv1.Tool)
+	return args.Get(0).([]agentinfo.Tool)
 }
 
 func startTestServer(llmMock llm.Llm) (*grpc.ClientConn, func(), error) {
@@ -44,7 +44,7 @@ func startTestServer(llmMock llm.Llm) (*grpc.ClientConn, func(), error) {
 	s := grpc.NewServer()
 	agentServer := agent.NewServer(llmMock)
 
-	agentv1.RegisterAgentServiceServer(s, agentServer)
+	agentinfo.RegisterAgentServiceServer(s, agentServer)
 	go func() {
 		if err := s.Serve(lis); err != nil {
 			panic(err)
@@ -75,7 +75,7 @@ func TestSubmitTask_Success(t *testing.T) {
 	task := "Test Task"
 	expectedResponse := "Task Response"
 
-	llmMock.On("SubmitTask", mock.Anything, task).Return(expectedResponse, nil)
+	llmMock.On("SubmitTask", mock.Anything, task, mock.Anything).Return(expectedResponse, nil)
 
 	// Start the test gRPC server
 	conn, cleanup, err := startTestServer(llmMock)
@@ -83,10 +83,10 @@ func TestSubmitTask_Success(t *testing.T) {
 	assert.NoError(t, err)
 
 	// Create the gRPC client
-	client := agentv1.NewAgentServiceClient(conn)
+	client := agentinfo.NewAgentServiceClient(conn)
 
 	// Call SubmitTask
-	req := &agentv1.SubmitTaskRequest{Task: task}
+	req := &agentinfo.SubmitTaskRequest{Task: task}
 	resp, err := client.SubmitTask(context.Background(), req)
 
 	// Assert results
@@ -101,7 +101,7 @@ func TestSubmitTask_Error(t *testing.T) {
 	task := "Test Task"
 	expectedError := errors.New("failed to process task")
 
-	llmMock.On("SubmitTask", mock.Anything, task, "json").Return("", expectedError)
+	llmMock.On("SubmitTask", mock.Anything, task, mock.Anything).Return("", expectedError)
 
 	// Start the test gRPC server
 	conn, cleanup, err := startTestServer(llmMock)
@@ -109,10 +109,10 @@ func TestSubmitTask_Error(t *testing.T) {
 	assert.NoError(t, err)
 
 	// Create the gRPC client
-	client := agentv1.NewAgentServiceClient(conn)
+	client := agentinfo.NewAgentServiceClient(conn)
 
 	// Call SubmitTask and expect an error
-	req := &agentv1.SubmitTaskRequest{Task: task}
+	req := &agentinfo.SubmitTaskRequest{Task: task}
 	resp, err := client.SubmitTask(context.Background(), req)
 
 	// Assert the error and response
