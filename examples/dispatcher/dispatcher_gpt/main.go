@@ -94,4 +94,7 @@ func main() {
 	}
 
 	logger.WithField("response", response).Info("final response!")
+	select {
+	case <-ctx.Done():
+	}
 }

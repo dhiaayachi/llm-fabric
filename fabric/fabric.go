@@ -2,6 +2,7 @@ package fabric
 
 import (
 	"context"
+	"fmt"
 	"github.com/dhiaayachi/llm-fabric/agent"
 	"github.com/dhiaayachi/llm-fabric/discoverer"
 	"github.com/dhiaayachi/llm-fabric/llm"
@@ -23,7 +24,7 @@ func (f Fabric) SubmitTask(ctx context.Context, task string) (string, error) {
 	taskAgents := f.strategy.Execute(task, f.discoverer.GetAgents(), f.localLlm)
 	rsps := make([]string, 0)
 	for _, taskAgent := range taskAgents {
-		client, err := agent.GetClient(taskAgent.Agent.Address)
+		client, err := agent.GetClient(fmt.Sprintf("%s:%d", taskAgent.Agent.Address, taskAgent.Agent.Port))
 		if err != nil {
 			return "", err
 		}

@@ -3,7 +3,7 @@ module dispatcher_gpt
 go 1.23.1
 
 require (
-	github.com/dhiaayachi/llm-fabric v0.0.0-20241108141138-6323e77b2397
+	github.com/dhiaayachi/llm-fabric v0.0.0-20241108153855-d6845d5ca3e0
 	github.com/hashicorp/serf v0.10.1
 	github.com/oklog/ulid/v2 v2.1.0
 	github.com/sashabaranov/go-openai v1.32.5

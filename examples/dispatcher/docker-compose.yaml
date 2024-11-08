@@ -1,0 +1,31 @@
+version: '3.8'
+services:
+  dispatcher:
+    image: dispatcher
+    restart: unless-stopped
+    build:
+      context: ./dispatcher_gpt
+    environment:
+      - GRPC_PORT=3442
+      - SERF_PORT=2222
+      - SERF_JOIN_ADDRS=dispatcher summarizer
+      - OPENAI_TOKEN=${OPENAI_TOKEN}
+    networks:
+      - fabric-net
+  summarizer:
+    image: summarizer
+    build:
+      context: ./summarizer_ollama
+    restart: unless-stopped
+    links:
+      - dispatcher
+    environment:
+      - OLLAMA_URL=http://${DOCKER_GATEWAY_HOST:-host.docker.internal}:11434
+      - GRPC_PORT=3442
+      - SERF_PORT=2222
+      - SERF_JOIN_ADDRS=dispatcher summarizer
+    networks:
+      - fabric-net
+
+networks:
+  fabric-net:

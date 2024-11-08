@@ -27,6 +27,11 @@ func main() {
 		logrus.Fatalf("failed to parse GRPC_PORT as integer: %v", err)
 	}
 
+	serfPort, err := strconv.Atoi(os.Getenv("SERF_PORT"))
+	if err != nil {
+		logrus.Fatalf("failed to parse GRPC_PORT as integer: %v", err)
+	}
+
 	agentInfo := agentinfo.AgentInfo{
 		Description: "Ollama agent_info",
 		Capabilities: []*agentinfo.Capability{
@@ -45,7 +50,7 @@ func main() {
 
 	serfConf := serf.DefaultConfig()
 	serfConf.NodeName = agentInfo.Id
-	serfConf.MemberlistConfig.BindPort = 2222
+	serfConf.MemberlistConfig.BindPort = serfPort
 	dicso, err := discoverer.NewSerfDiscoverer(serfConf, s, logger)
 	if err != nil {
 		logrus.Fatal(err)
