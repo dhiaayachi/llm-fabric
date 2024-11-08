@@ -49,7 +49,8 @@ func main() {
 	s := store.NewInMemoryStore()
 
 	serfConf := serf.DefaultConfig()
-	serfConf.NodeName = agentInfo.Id
+
+	serfConf.MemberlistConfig.BindAddr = "0.0.0.0"
 	serfConf.MemberlistConfig.BindPort = serfPort
 	dicso, err := discoverer.NewSerfDiscoverer(serfConf, s, logger)
 	if err != nil {

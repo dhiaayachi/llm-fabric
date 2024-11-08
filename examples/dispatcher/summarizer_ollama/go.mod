@@ -2,9 +2,7 @@ module summarizer_ollama
 
 go 1.23.1
 
-replace (
-	github.com/dhiaayachi/llm-fabric => ../../..
-)
+replace github.com/dhiaayachi/llm-fabric => ../../..
 
 require (
 	github.com/dhiaayachi/llm-fabric v0.0.0-20241108153855-d6845d5ca3e0
@@ -25,7 +23,7 @@ require (
 	github.com/hashicorp/golang-lru v0.5.0 // indirect
 	github.com/hashicorp/memberlist v0.5.0 // indirect
 	github.com/miekg/dns v1.1.41 // indirect
-	github.com/sashabaranov/go-openai v1.32.5 // indirect
+	github.com/sashabaranov/go-openai v1.35.6 // indirect
 	github.com/sean-/seed v0.0.0-20170313163322-e2103e2c3529 // indirect
 	golang.org/x/net v0.28.0 // indirect
 	golang.org/x/sys v0.24.0 // indirect

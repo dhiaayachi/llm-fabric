@@ -7,7 +7,7 @@ WORKDIR /app
 
 COPY . .
 
-WORKDIR /app/examples/dispatcher/dispatcher_gpt/
+WORKDIR /app/examples/dispatcher/summarizer_ollama
 
 RUN go mod download
 

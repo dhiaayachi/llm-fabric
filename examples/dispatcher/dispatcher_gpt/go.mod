@@ -2,15 +2,13 @@ module dispatcher_gpt
 
 go 1.23.1
 
-replace (
-	github.com/dhiaayachi/llm-fabric => ../../../
-)
+replace github.com/dhiaayachi/llm-fabric => ../../../
 
 require (
 	github.com/dhiaayachi/llm-fabric v0.0.0-20241108153855-d6845d5ca3e0
 	github.com/hashicorp/serf v0.10.1
 	github.com/oklog/ulid/v2 v2.1.0
-	github.com/sashabaranov/go-openai v1.32.5
+	github.com/sashabaranov/go-openai v1.35.6
 	github.com/sirupsen/logrus v1.9.3
 )
 
@@ -20,10 +18,11 @@ require (
 	github.com/hashicorp/errwrap v1.0.0 // indirect
 	github.com/hashicorp/go-immutable-radix v1.0.0 // indirect
 	github.com/hashicorp/go-msgpack v0.5.3 // indirect
+	github.com/hashicorp/go-msgpack/v2 v2.1.1 // indirect
 	github.com/hashicorp/go-multierror v1.1.0 // indirect
 	github.com/hashicorp/go-sockaddr v1.0.0 // indirect
 	github.com/hashicorp/golang-lru v0.5.0 // indirect
-	github.com/hashicorp/memberlist v0.5.0 // indirect
+	github.com/hashicorp/memberlist v0.5.1 // indirect
 	github.com/miekg/dns v1.1.41 // indirect
 	github.com/ollama/ollama v0.4.0 // indirect
 	github.com/sean-/seed v0.0.0-20170313163322-e2103e2c3529 // indirect

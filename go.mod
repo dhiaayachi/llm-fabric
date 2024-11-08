@@ -5,7 +5,7 @@ go 1.23.1
 require (
 	github.com/hashicorp/serf v0.10.1
 	github.com/ollama/ollama v0.4.0
-	github.com/sashabaranov/go-openai v1.32.5
+	github.com/sashabaranov/go-openai v1.35.6
 	github.com/sirupsen/logrus v1.9.3
 	github.com/stretchr/testify v1.9.0
 	google.golang.org/genproto/googleapis/api v0.0.0-20241021214115-324edc3d5d38

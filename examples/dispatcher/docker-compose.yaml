@@ -9,10 +9,13 @@ services:
     environment:
       - GRPC_PORT=3442
       - SERF_PORT=2222
-      - SERF_JOIN_ADDRS=dispatcher summarizer
+      - SERF_JOIN_ADDRS=dispatcher:2222 summarizer:2222
       - OPENAI_TOKEN=${OPENAI_TOKEN}
     networks:
       - fabric-net
+    ports:
+      - "2222/udp"
+
   summarizer:
     image: summarizer
     build:
@@ -25,9 +28,14 @@ services:
       - OLLAMA_URL=http://${DOCKER_GATEWAY_HOST:-host.docker.internal}:11434
       - GRPC_PORT=3442
       - SERF_PORT=2222
-      - SERF_JOIN_ADDRS=dispatcher summarizer
+      - SERF_JOIN_ADDRS=dispatcher:2222 summarizer:2222
     networks:
       - fabric-net
+    ports:
+      - "2222/udp"
+
 
 networks:
   fabric-net:
+    driver: bridge
+    enable_ipv6: false
