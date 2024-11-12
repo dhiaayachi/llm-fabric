@@ -16,6 +16,7 @@ type Server struct {
 	llm        llm.Llm
 	logger     *logrus.Logger
 	ListenAddr string
+	listener   net.Listener
 }
 
 type Config struct {
@@ -42,13 +43,14 @@ func NewServer(llm llm.Llm, conf *Config) *Server {
 }
 
 func (srv *Server) Start(ctx context.Context) {
+	lis, err := net.Listen("tcp", srv.ListenAddr)
+	if err != nil {
+		srv.logger.WithError(err).Error("failed to listen")
+	}
+	srv.listener = lis
 	go func() {
 		for {
-			lis, err := net.Listen("tcp", srv.ListenAddr)
-			if err != nil {
-				srv.logger.WithError(err).Error("failed to listen")
-			}
-			err = srv.srv.Serve(lis)
+			err = srv.srv.Serve(srv.listener)
 			if err != nil {
 				srv.logger.WithError(err).Error("failed to serve")
 			}
@@ -58,7 +60,6 @@ func (srv *Server) Start(ctx context.Context) {
 			case <-ctx.Done():
 				return
 			}
-
 		}
 	}()
 }
