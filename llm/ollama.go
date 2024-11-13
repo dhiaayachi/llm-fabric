@@ -4,45 +4,67 @@ import (
 	"context"
 	"fmt"
 	agentinfo "github.com/dhiaayachi/llm-fabric/proto/gen/agent_info/v1"
-	"github.com/ollama/ollama/api"
 	"github.com/sirupsen/logrus"
+	"github.com/tmc/langchaingo/llms"
+	"github.com/tmc/langchaingo/llms/ollama"
 )
 
-// OllamaClient is a wrapper around the Ollama API client.
+// OllamaClient is a wrapper around the langchain Ollama API client.
 type OllamaClient struct {
-	client       *api.Client
 	logger       *logrus.Entry
 	model        string
 	role         string
 	capabilities []agentinfo.Capability
 	tools        []agentinfo.Tool
+	url          string
 }
 
 var _ Llm = &OllamaClient{}
 
-// SubmitTask sends a task (prompt) to the Ollama API and returns all responses as a slice of strings.
+// SubmitTask sends a task (prompt) to the Ollama API and returns all responses as a concatenated string.
 func (c *OllamaClient) SubmitTask(ctx context.Context, task string, opts ...*agentinfo.LlmOpt) (string, error) {
 	logger := c.logger.WithFields(logrus.Fields{
 		"task": task,
 	})
 	logger.Info("Submitting task to Ollama")
 
-	respFormat := getOpt[string](agentinfo.LlmOptType_LLM_OPT_TYPE_OLLAMA_RESPONSE_FORMAT, opts...)
+	schema := getOpt[string](agentinfo.LlmOptType_LLM_OPT_TYPE_OLLAMA_RESPONSE_SCHEMA, opts...)
 
-	// Create a request using Ollama's client
-	req := &api.GenerateRequest{
-		Model:  c.model,
-		Prompt: task,
-		Format: respFormat,
+	var llmOpts []ollama.Option
+	if c.url != "" {
+		urlOpts := ollama.WithServerURL(c.url)
+		llmOpts = append(llmOpts, urlOpts)
+
 	}
 
-	var resp string
-	// Call the Ollama API and get the response
-	err := c.client.Generate(ctx, req, func(response api.GenerateResponse) error {
-		resp += response.Response
-		logger.WithField("response", resp).Trace("Got response")
-		return nil
-	})
+	if schema != "" {
+		llmOpts = append(llmOpts, ollama.WithFormat("json"))
+	}
+
+	if c.model != "" {
+		llmOpts = append(llmOpts, ollama.WithModel(c.model))
+	}
+
+	logger.WithField("schema", schema).WithField("model", c.model).WithField("url", c.url).Info("Submitting task to Ollama With the following options")
+	o, err := ollama.New(llmOpts...)
+	if err != nil {
+		logger.WithError(err).Error("Failed to submit task to Ollama")
+		return "", err
+	}
+
+	var msgs []llms.MessageContent
+	if schema != "" {
+		message, err := systemMessage(schema)
+		if err != nil {
+			logger.WithError(err).Error("Failed to submit task to Ollama")
+			return "", fmt.Errorf("failed to submit task to Ollama: %w", err)
+		}
+		msgs = append(msgs, llms.TextParts(llms.ChatMessageTypeSystem, message))
+	}
+	msgs = append(msgs, llms.TextParts(llms.ChatMessageTypeHuman, task))
+
+	// Send request using langchain Ollama client
+	resp, err := o.GenerateContent(ctx, msgs)
 	if err != nil {
 		logger.WithError(err).Error("Failed to submit task to Ollama")
 		return "", fmt.Errorf("failed to submit task to Ollama: %w", err)
@@ -52,7 +74,7 @@ func (c *OllamaClient) SubmitTask(ctx context.Context, task string, opts ...*age
 		"content": resp,
 	}).Info("Received response from Ollama")
 
-	return resp, nil
+	return resp.Choices[0].Content, nil
 }
 
 // GetCapabilities returns the predefined capabilities of the Ollama client.
@@ -68,18 +90,25 @@ func (c *OllamaClient) GetTools() []agentinfo.Tool {
 }
 
 // NewOllama creates a new instance of OllamaClient with the given configuration, logger, model, and role.
-func NewOllama(apiClient *api.Client, logger *logrus.Logger, model, role string, capabilities []agentinfo.Capability, tools []agentinfo.Tool) *OllamaClient {
+func NewOllama(url string, logger *logrus.Logger, model, role string, capabilities []agentinfo.Capability, tools []agentinfo.Tool) *OllamaClient {
 	entry := logger.WithFields(logrus.Fields{
 		"module": "OllamaClient",
 		"model":  model,
 		"role":   role,
 	})
 	return &OllamaClient{
-		client:       apiClient,
 		logger:       entry,
 		model:        model,
 		role:         role,
 		capabilities: capabilities,
 		tools:        tools,
+		url:          url,
 	}
+}
+
+func systemMessage(schema string) (string, error) {
+
+	return fmt.Sprintf(`Always respond with a JSON object with the following structure: 
+%s
+`, schema), nil
 }
