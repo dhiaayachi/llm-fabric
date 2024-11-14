@@ -12,8 +12,6 @@ import (
 type Llm interface {
 	// SubmitTask TODO: task need to be changed to proto eventually
 	SubmitTask(ctx context.Context, task string, opts ...*agentinfo.LlmOpt) (response string, err error)
-	GetCapabilities() []agentinfo.Capability // Abilities or features the llm supports
-	GetTools() []agentinfo.Tool              // Abilities or features the llm supports
 }
 
 func getOpt[T any](typ agentinfo.LlmOptType, opts ...*agentinfo.LlmOpt) T {

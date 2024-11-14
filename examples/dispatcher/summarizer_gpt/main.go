@@ -10,8 +10,8 @@ import (
 	agentinfo "github.com/dhiaayachi/llm-fabric/proto/gen/agent_info/v1"
 	"github.com/hashicorp/serf/serf"
 	"github.com/oklog/ulid/v2"
+	"github.com/sashabaranov/go-openai"
 	"github.com/sirupsen/logrus"
-	"net/url"
 	"os"
 	"strconv"
 	"strings"
@@ -39,7 +39,7 @@ func main() {
 		Tools: make([]*agentinfo.Tool, 0),
 		Id:    ulid.Make().String(),
 		Port:  int32(grpcPort),
-		Cost:  1,
+		Cost:  10, // GPT is high cost
 	}
 
 	logger := logrus.New()
@@ -64,11 +64,7 @@ func main() {
 	}
 	time.Sleep(1 * time.Second)
 	// Create local llm
-	parse, err := url.Parse(os.Getenv("OLLAMA_URL"))
-	if err != nil {
-		logrus.Fatal(err)
-	}
-	l := llm.NewOllama(parse.String(), logger, "llama3.2", "dispatcher")
+	l := llm.NewGPT(openai.DefaultConfig(os.Getenv("OPENAI_TOKEN")), logger, "gpt-4o-2024-08-06", "assistant")
 
 	srv := agent.NewServer(l, &agent.Config{Logger: logger, ListenAddr: fmt.Sprintf("0.0.0.0:%d", grpcPort)})
 	srv.Start(ctx)

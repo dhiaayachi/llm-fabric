@@ -1,16 +1,15 @@
-version: '3.8'
 services:
   dispatcher:
     image: dispatcher
     restart: unless-stopped
     build:
       context: ../../
-      dockerfile: ./examples/dispatcher/dispatcher_gpt/Dockerfile
+      dockerfile: ./examples/dispatcher/dispatcher_ollama/Dockerfile
     environment:
+      - OLLAMA_URL=http://${DOCKER_GATEWAY_HOST:-host.docker.internal}:11434
       - GRPC_PORT=3442
       - SERF_PORT=2222
-      - SERF_JOIN_ADDRS=dispatcher:2222 summarizer:2222
-      - OPENAI_TOKEN=${OPENAI_TOKEN}
+      - SERF_JOIN_ADDRS=dispatcher:2222 summarizer:2222 summarizer2:2222
     networks:
       - fabric-net
     ports:
@@ -18,6 +17,24 @@ services:
 
   summarizer:
     image: summarizer
+    build:
+      context: ../../
+      dockerfile: ./examples/dispatcher/summarizer_gpt/Dockerfile
+    restart: unless-stopped
+    links:
+      - dispatcher
+    environment:
+      - GRPC_PORT=3442
+      - SERF_PORT=2222
+      - SERF_JOIN_ADDRS=dispatcher:2222 summarizer:2222 summarizer2:2222
+      - OPENAI_TOKEN=${OPENAI_TOKEN}
+
+    networks:
+      - fabric-net
+    ports:
+      - "2222/udp"
+  summarizer2:
+    image: summarizer2
     build:
       context: ../../
       dockerfile: ./examples/dispatcher/summarizer_ollama/Dockerfile
@@ -28,7 +45,7 @@ services:
       - OLLAMA_URL=http://${DOCKER_GATEWAY_HOST:-host.docker.internal}:11434
       - GRPC_PORT=3442
       - SERF_PORT=2222
-      - SERF_JOIN_ADDRS=dispatcher:2222 summarizer:2222
+      - SERF_JOIN_ADDRS=dispatcher:2222 summarizer:2222 summarizer2:2222
     networks:
       - fabric-net
     ports:

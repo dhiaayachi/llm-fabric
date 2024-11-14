@@ -40,7 +40,7 @@ func TestSubmitTask_Success(t *testing.T) {
 	// Configure the Ollama client to use the test server
 	logger, _ := test.NewNullLogger()
 
-	ollamaClient := llm.NewOllama(server.URL, logger, "test-model", "user", []agentinfo.Capability{}, []agentinfo.Tool{})
+	ollamaClient := llm.NewOllama(server.URL, logger, "test-model", "user")
 
 	TestResponse := struct {
 		Choice string `json:"content"`
@@ -68,7 +68,7 @@ func TestSubmitTask_Error(t *testing.T) {
 	// Configure the Ollama client to use the test server
 	logger, hook := test.NewNullLogger()
 
-	ollamaClient := llm.NewOllama(server.URL, logger, "test-model", "user", []agentinfo.Capability{}, []agentinfo.Tool{})
+	ollamaClient := llm.NewOllama(server.URL, logger, "test-model", "user")
 
 	// Call SubmitTask and expect an error
 	o := &agentinfo.LlmOpt{Typ: agentinfo.LlmOptType_LLM_OPT_TYPE_OLLAMA_RESPONSE_SCHEMA}
@@ -81,32 +81,4 @@ func TestSubmitTask_Error(t *testing.T) {
 
 	// Verify logs
 	assert.Equal(t, "Failed to submit task to Ollama", hook.LastEntry().Message)
-}
-
-func TestGetCapabilities(t *testing.T) {
-	// Set up logger and ollama client without using the server for this test
-	logger, hook := test.NewNullLogger()
-	capabilities := []agentinfo.Capability{{Id: "1", Description: "text generation"}}
-	ollamaClient := llm.NewOllama("", logger, "test-model", "user", capabilities, []agentinfo.Tool{})
-
-	// Call GetCapabilities
-	retrievedCapabilities := ollamaClient.GetCapabilities()
-	assert.Equal(t, capabilities, retrievedCapabilities)
-
-	// Verify logs
-	assert.Equal(t, "Retrieving capabilities of Ollama client", hook.LastEntry().Message)
-}
-
-func TestGetTools(t *testing.T) {
-	// Set up logger and ollama client without using the server for this test
-	logger, hook := test.NewNullLogger()
-	tools := []agentinfo.Tool{{Name: "Tool1"}}
-	ollamaClient := llm.NewOllama("", logger, "test-model", "user", []agentinfo.Capability{}, tools)
-
-	// Call GetTools
-	retrievedTools := ollamaClient.GetTools()
-	assert.Equal(t, tools, retrievedTools)
-
-	// Verify logs
-	assert.Equal(t, "Retrieving tools of Ollama client", hook.LastEntry().Message)
 }

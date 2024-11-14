@@ -10,12 +10,10 @@ import (
 )
 
 type GPT struct {
-	client       *openai.Client
-	logger       *logrus.Entry
-	model        string
-	role         string
-	capabilities []agentinfo.Capability
-	tools        []agentinfo.Tool
+	client *openai.Client
+	logger *logrus.Entry
+	model  string
+	role   string
 }
 
 var _ Llm = &GPT{}
@@ -77,20 +75,8 @@ func (c *GPT) SubmitTask(ctx context.Context, task string, opts ...*agentinfo.Ll
 	return results, nil
 }
 
-// GetCapabilities returns the predefined capabilities of the GPT llm.
-func (c *GPT) GetCapabilities() []agentinfo.Capability {
-	c.logger.Info("Retrieving capabilities of GPT llm")
-	return c.capabilities
-}
-
-// GetTools returns the predefined tools of the GPT llm.
-func (c *GPT) GetTools() []agentinfo.Tool {
-	c.logger.Info("Retrieving tools of GPT llm")
-	return c.tools
-}
-
 // NewGPT creates a new instance of GPT with the given OpenAI client configuration, a logger, model, and role.
-func NewGPT(config openai.ClientConfig, logger *logrus.Logger, model, role string, capabilities []agentinfo.Capability, tools []agentinfo.Tool) *GPT {
+func NewGPT(config openai.ClientConfig, logger *logrus.Logger, model, role string) *GPT {
 	client := openai.NewClientWithConfig(config)
 	entry := logger.WithFields(logrus.Fields{
 		"module": "GPT",
@@ -98,11 +84,9 @@ func NewGPT(config openai.ClientConfig, logger *logrus.Logger, model, role strin
 		"role":   role},
 	)
 	return &GPT{
-		client:       client,
-		logger:       entry,
-		model:        model,
-		role:         role,
-		capabilities: capabilities,
-		tools:        tools,
+		client: client,
+		logger: entry,
+		model:  model,
+		role:   role,
 	}
 }

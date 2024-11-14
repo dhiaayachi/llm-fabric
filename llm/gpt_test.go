@@ -3,7 +3,6 @@ package llm
 import (
 	"context"
 	"encoding/json"
-	agentinfo "github.com/dhiaayachi/llm-fabric/proto/gen/agent_info/v1"
 	"github.com/stretchr/testify/require"
 	"net/http"
 	"net/http/httptest"
@@ -42,7 +41,7 @@ func TestSubmitTask_Success(t *testing.T) {
 	logger.SetLevel(logrus.DebugLevel)
 
 	// Create GPT instance
-	gpt := NewGPT(clientConfig, logger, "gpt-3.5-turbo", "user", []agentinfo.Capability{}, []agentinfo.Tool{})
+	gpt := NewGPT(clientConfig, logger, "gpt-3.5-turbo", "user")
 
 	// Call SubmitTask and assert the response
 	responses, err := gpt.SubmitTask(context.Background(), "Test prompt")
@@ -73,7 +72,7 @@ func TestSubmitTask_NoChoices(t *testing.T) {
 	logger := logrus.New()
 	logger.SetLevel(logrus.DebugLevel)
 
-	gpt := NewGPT(clientConfig, logger, "gpt-3.5-turbo", "user", []agentinfo.Capability{}, []agentinfo.Tool{})
+	gpt := NewGPT(clientConfig, logger, "gpt-3.5-turbo", "user")
 
 	// Call SubmitTask and assert an error is returned
 	responses, err := gpt.SubmitTask(context.Background(), "Test prompt")
@@ -100,7 +99,7 @@ func TestSubmitTask_ErrorFromAPI(t *testing.T) {
 	logger := logrus.New()
 	logger.SetLevel(logrus.DebugLevel)
 
-	gpt := NewGPT(clientConfig, logger, "gpt-3.5-turbo", "user", []agentinfo.Capability{}, []agentinfo.Tool{})
+	gpt := NewGPT(clientConfig, logger, "gpt-3.5-turbo", "user")
 
 	// Call SubmitTask and assert an error is returned
 	responses, err := gpt.SubmitTask(context.Background(), "Test prompt")
@@ -109,57 +108,14 @@ func TestSubmitTask_ErrorFromAPI(t *testing.T) {
 	assert.Contains(t, err.Error(), "failed to submit task to ChatGPT")
 }
 
-// TestGetCapabilities tests GetCapabilities method.
-func TestGetCapabilities(t *testing.T) {
-	logger := logrus.New()
-	logger.SetLevel(logrus.DebugLevel)
-
-	capabilities := []agentinfo.Capability{
-		{Id: "1", Description: "Text generation"},
-		{Id: "2", Description: "Text summarization"},
-	}
-
-	gpt := NewGPT(openai.ClientConfig{}, logger, "gpt-3.5-turbo", "user", capabilities, []agentinfo.Tool{})
-
-	// Call GetCapabilities and assert the response
-	result := gpt.GetCapabilities()
-	assert.Equal(t, capabilities, result)
-}
-
-// TestGetTools tests GetTools method.
-func TestGetTools(t *testing.T) {
-	logger := logrus.New()
-	logger.SetLevel(logrus.DebugLevel)
-
-	tools := []agentinfo.Tool{
-		{Name: "Tool 1"},
-		{Name: "Tool 2"},
-	}
-
-	gpt := NewGPT(openai.ClientConfig{}, logger, "gpt-3.5-turbo", "user", []agentinfo.Capability{}, tools)
-
-	// Call GetTools and assert the response
-	result := gpt.GetTools()
-	assert.Equal(t, tools, result)
-}
-
 // TestNewGPT tests the NewGPT constructor function.
 func TestNewGPT(t *testing.T) {
 	logger := logrus.New()
 	logger.SetLevel(logrus.DebugLevel)
 
-	capabilities := []agentinfo.Capability{
-		{Id: "1", Description: "Text generation"},
-	}
-	tools := []agentinfo.Tool{
-		{Name: "Tool 1"},
-	}
-
-	gpt := NewGPT(openai.ClientConfig{}, logger, "gpt-3.5-turbo", "user", capabilities, tools)
+	gpt := NewGPT(openai.ClientConfig{}, logger, "gpt-3.5-turbo", "user")
 
 	// Assert that NewGPT initializes correctly
 	assert.Equal(t, "gpt-3.5-turbo", gpt.model)
 	assert.Equal(t, "user", gpt.role)
-	assert.Equal(t, capabilities, gpt.capabilities)
-	assert.Equal(t, tools, gpt.tools)
 }

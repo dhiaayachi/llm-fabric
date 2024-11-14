@@ -7,11 +7,10 @@ import (
 	"github.com/dhiaayachi/llm-fabric/llm"
 	agentinfo "github.com/dhiaayachi/llm-fabric/proto/gen/agent_info/v1"
 	"github.com/dhiaayachi/llm-fabric/strategy"
-	"github.com/sashabaranov/go-openai/jsonschema"
 	"github.com/sirupsen/logrus"
 )
 
-type CapacityDispatcher struct {
+type CapabilityDispatcher struct {
 	logger *logrus.Logger
 }
 
@@ -29,7 +28,7 @@ func availableCapabilities(Agents []*agentinfo.AgentInfo) []*agentinfo.Capabilit
 	return res
 }
 
-func (d *CapacityDispatcher) Execute(task string, Agents []*agentinfo.AgentInfo, localLLM llm.Llm) []*strategy.TaskAgent {
+func (d *CapabilityDispatcher) Execute(task string, Agents []*agentinfo.AgentInfo, localLLM llm.Llm) []*strategy.TaskAgent {
 	capa := availableCapabilities(Agents)
 	prompt := "select the best capabilities to answer the following task:\\n\\n"
 	prompt = prompt + fmt.Sprintf("%s\\n\\n", task)
@@ -39,10 +38,10 @@ func (d *CapacityDispatcher) Execute(task string, Agents []*agentinfo.AgentInfo,
 		d.logger.Fatal(err)
 	}
 	prompt = prompt + fmt.Sprintf("%s\\n\\n", marchal)
-	prompt = prompt + "\\n select a set of capabilities that an AI agent_info should have to solve this task, return a subset of capabilities that are needed to solve this task" +
+	prompt = prompt + "\\n select a sub set of capabilities that an AI agent_info should have to solve this task, return a subset of capabilities that are needed to solve this task. Only select from the provided capabilities" +
 		"(minimum 1 and maximum 3)"
 
-	o := &agentinfo.LlmOpt{Typ: agentinfo.LlmOptType_LLM_OPT_TYPE_GPTResponseFormat}
+	o := &agentinfo.LlmOpt{Typ: agentinfo.LlmOptType_LLM_OPT_TYPE_OLLAMA_RESPONSE_SCHEMA}
 	type result struct {
 		Capabilities []struct {
 			Id          string `json:"id"`
@@ -50,13 +49,20 @@ func (d *CapacityDispatcher) Execute(task string, Agents []*agentinfo.AgentInfo,
 		} `json:"capabilities"`
 	}
 
-	schema, err := jsonschema.GenerateSchemaForType(result{})
+	v := result{Capabilities: []struct {
+		Id          string `json:"id"`
+		Description string `json:"description"`
+	}{
+		{Id: "Id of the selected capability",
+			Description: "Description of the selected capability"},
+	}}
+	schema, err := json.Marshal(v)
 	if err != nil {
 		d.logger.Fatal(err)
 		return nil
 	}
 
-	err = llm.FromVal[*jsonschema.Definition](o, schema)
+	err = llm.FromVal[string](o, string(schema))
 	if err != nil {
 		d.logger.Fatal(err)
 	}
@@ -73,7 +79,7 @@ func (d *CapacityDispatcher) Execute(task string, Agents []*agentinfo.AgentInfo,
 
 	d.logger.WithFields(logrus.Fields{"response": res}).Info("got a response!")
 
-	var capabaleAgent *agentinfo.AgentInfo
+	var capabaleAgents []*agentinfo.AgentInfo
 	for _, a := range Agents {
 		foundCap := false
 		for _, c := range res.Capabilities {
@@ -90,19 +96,27 @@ func (d *CapacityDispatcher) Execute(task string, Agents []*agentinfo.AgentInfo,
 			}
 		}
 		if foundCap {
-			capabaleAgent = a
-			break
+			capabaleAgents = append(capabaleAgents, a)
 		}
 	}
-	if capabaleAgent == nil {
+
+	if len(capabaleAgents) == 0 {
 		err := fmt.Errorf("could not find capability to solve")
 		d.logger.Fatal(err)
 		return nil
 	}
-	return []*strategy.TaskAgent{{Agent: capabaleAgent, Task: task}}
+	d.logger.WithField("capabaleAgents", capabaleAgents).Info("found capable agents")
+	var selectedAgent = capabaleAgents[0]
+	for _, a := range capabaleAgents {
+		if selectedAgent.Cost > a.Cost {
+			selectedAgent = a
+		}
+	}
+	d.logger.WithField("selectedAgent", selectedAgent).Info("selected agent")
+	return []*strategy.TaskAgent{{Agent: selectedAgent, Task: task}}
 }
 
-func (d *CapacityDispatcher) Finalize(responses []string, _ llm.Llm) string {
+func (d *CapabilityDispatcher) Finalize(responses []string, _ llm.Llm) string {
 	r := ""
 	for _, response := range responses {
 		r += response

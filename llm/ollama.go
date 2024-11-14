@@ -11,12 +11,10 @@ import (
 
 // OllamaClient is a wrapper around the langchain Ollama API client.
 type OllamaClient struct {
-	logger       *logrus.Entry
-	model        string
-	role         string
-	capabilities []agentinfo.Capability
-	tools        []agentinfo.Tool
-	url          string
+	logger *logrus.Entry
+	model  string
+	role   string
+	url    string
 }
 
 var _ Llm = &OllamaClient{}
@@ -77,32 +75,18 @@ func (c *OllamaClient) SubmitTask(ctx context.Context, task string, opts ...*age
 	return resp.Choices[0].Content, nil
 }
 
-// GetCapabilities returns the predefined capabilities of the Ollama client.
-func (c *OllamaClient) GetCapabilities() []agentinfo.Capability {
-	c.logger.Info("Retrieving capabilities of Ollama client")
-	return c.capabilities
-}
-
-// GetTools returns the predefined tools of the Ollama client.
-func (c *OllamaClient) GetTools() []agentinfo.Tool {
-	c.logger.Info("Retrieving tools of Ollama client")
-	return c.tools
-}
-
 // NewOllama creates a new instance of OllamaClient with the given configuration, logger, model, and role.
-func NewOllama(url string, logger *logrus.Logger, model, role string, capabilities []agentinfo.Capability, tools []agentinfo.Tool) *OllamaClient {
+func NewOllama(url string, logger *logrus.Logger, model, role string) *OllamaClient {
 	entry := logger.WithFields(logrus.Fields{
 		"module": "OllamaClient",
 		"model":  model,
 		"role":   role,
 	})
 	return &OllamaClient{
-		logger:       entry,
-		model:        model,
-		role:         role,
-		capabilities: capabilities,
-		tools:        tools,
-		url:          url,
+		logger: entry,
+		model:  model,
+		role:   role,
+		url:    url,
 	}
 }
 

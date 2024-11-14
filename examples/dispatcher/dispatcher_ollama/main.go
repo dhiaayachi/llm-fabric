@@ -3,6 +3,8 @@ package main
 import (
 	"context"
 	"fmt"
+	"github.com/oklog/ulid/v2"
+	"net/url"
 	"os"
 	"strconv"
 	"strings"
@@ -13,10 +15,8 @@ import (
 	"github.com/dhiaayachi/llm-fabric/discoverer/store"
 	"github.com/dhiaayachi/llm-fabric/fabric"
 	"github.com/dhiaayachi/llm-fabric/llm"
-	agentv1 "github.com/dhiaayachi/llm-fabric/proto/gen/agent_info/v1"
+	agentinfo "github.com/dhiaayachi/llm-fabric/proto/gen/agent_info/v1"
 	"github.com/hashicorp/serf/serf"
-	"github.com/oklog/ulid/v2"
-	"github.com/sashabaranov/go-openai"
 	"github.com/sirupsen/logrus"
 )
 
@@ -32,14 +32,15 @@ func main() {
 		logrus.Fatalf("failed to parse GRPC_PORT as integer: %v", err)
 	}
 
-	agentInfo := agentv1.AgentInfo{
+	agentInfo := agentinfo.AgentInfo{
 		Description: "Ollama agent_info",
-		Capabilities: []*agentv1.Capability{
-			{Id: "3", Description: "text generation"},
+		Capabilities: []*agentinfo.Capability{
+			{Id: "4", Description: "capability based tasks dispatcher"},
 		},
-		Tools: make([]*agentv1.Tool, 0),
+		Tools: make([]*agentinfo.Tool, 0),
 		Id:    ulid.Make().String(),
 		Port:  int32(grpcPort),
+		Cost:  1,
 	}
 
 	logger := logrus.New()
@@ -65,18 +66,17 @@ func main() {
 	time.Sleep(1 * time.Second)
 
 	// Create local llm
-	l := llm.NewGPT(openai.DefaultConfig(os.Getenv("OPENAI_TOKEN")),
-		logger,
-		"gpt-4o-2024-08-06",
-		"assistant",
-		[]agentv1.Capability{{Id: "4", Description: "dispatch tasks to other agents"}},
-		[]agentv1.Tool{})
+	parse, err := url.Parse(os.Getenv("OLLAMA_URL"))
+	if err != nil {
+		logrus.Fatal(err)
+	}
+	l := llm.NewOllama(parse.String(), logger, "llama3.2", "dispatcher")
 
 	srv := agent.NewServer(l, &agent.Config{Logger: logger, ListenAddr: fmt.Sprintf("0.0.0.0:%d", grpcPort)})
 	srv.Start(ctx)
 
 	// Create fabric
-	f := fabric.NewFabric(dicso, &CapacityDispatcher{logger: logger}, l)
+	f := fabric.NewFabric(dicso, &CapabilityDispatcher{logger: logger}, l)
 	response, err := f.SubmitTask(context.Background(), "Can you summarize this text?: Johannes Gutenberg (1398 – 1468) "+
 		"was a German goldsmith and publisher who introduced printing to Europe. His introduction of mechanical "+
 		"movable type printing to Europe started the Printing Revolution and is widely regarded as the most important "+
