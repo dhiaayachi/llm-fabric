@@ -4,12 +4,13 @@ on: [push]
 jobs:
   build:
     runs-on: ubuntu-latest
-
     steps:
       - uses: actions/checkout@v4
       - uses: bufbuild/buf-action@v1
         with:
           push: false
+      - name: Check if buf changes
+        run: git status --short | grep -q .
       - name: Setup Go
         uses: actions/setup-go@v5
         with:
