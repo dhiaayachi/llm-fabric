@@ -10,7 +10,7 @@ jobs:
         with:
           push: false
       - name: Check if buf changes
-        run: git status --short | grep -q .
+        run: git diff --quiet || false
       - name: Setup Go
         uses: actions/setup-go@v5
         with:
