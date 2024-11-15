@@ -8,9 +8,10 @@ import (
 type TaskAgent struct {
 	Task  string
 	Agent *agentinfo.AgentInfo
+	Node  *agentinfo.NodeInfo
 }
 
 type Strategy interface {
-	Execute(task string, Agents []*agentinfo.AgentInfo, localLLM llm.Llm) []*TaskAgent
+	Execute(task string, Agents []*agentinfo.AgentsNodeInfo, localLLM llm.Llm) []*TaskAgent
 	Finalize(responses []string, localLLM llm.Llm) string
 }

@@ -24,14 +24,14 @@ type SerfDiscoverer struct {
 	cancel context.CancelFunc
 	store  store.Store
 	logger *logrus.Logger
-	agent  *agentinfo.AgentInfo
+	agent  *agentinfo.AgentsNodeInfo
 }
 
-func (s *SerfDiscoverer) GetAgents() []*agentinfo.AgentInfo {
+func (s *SerfDiscoverer) GetAgents() []*agentinfo.AgentsNodeInfo {
 	return s.store.GetAll()
 }
 
-func (s *SerfDiscoverer) Join(ctx context.Context, addresses []string, agent *agentinfo.AgentInfo) error {
+func (s *SerfDiscoverer) Join(ctx context.Context, addresses []string, agent *agentinfo.AgentsNodeInfo) error {
 	_, err := s.serf.Join(addresses, true)
 	if err != nil {
 		s.logger.WithError(err).WithField("module", moduleLog).Error("failed to join Serf cluster")
@@ -52,7 +52,7 @@ func (s *SerfDiscoverer) run(ctx context.Context, ch chan serf.Event, tickDelay 
 	for {
 		select {
 		case <-after:
-			s.agent.Address = s.serf.LocalMember().Addr.String()
+			s.agent.Node.Address = s.serf.LocalMember().Addr.String()
 			marshal, err := proto.Marshal(s.agent)
 			s.logger.WithField("module", moduleLog).Info("sending agent_info info")
 			if err != nil {
@@ -76,29 +76,32 @@ func (s *SerfDiscoverer) run(ctx context.Context, ch chan serf.Event, tickDelay 
 			switch evt.(type) {
 			case serf.UserEvent:
 				ue := evt.(serf.UserEvent)
-				agent := agentinfo.AgentInfo{}
+				agentsNode := agentinfo.AgentsNodeInfo{}
 
-				err := proto.Unmarshal(ue.Payload, &agent)
+				err := proto.Unmarshal(ue.Payload, &agentsNode)
 				if err != nil {
 					s.logger.WithError(err).WithField("module", moduleLog).Error("error unmarshalling llm")
 					continue
 				}
 
-				s.logger.WithFields(logrus.Fields{
-					"module":   moduleLog,
-					"agent_id": agent.Id,
-					"address":  agent.Address,
-				}).Info("discovered a new llm")
+				for _, agent := range agentsNode.Agents {
 
-				err = s.store.Store(&agent)
-				if err != nil {
-					s.logger.WithError(err).WithField("module", moduleLog).Error("error storing llm")
-					continue
+					s.logger.WithFields(logrus.Fields{
+						"module":   moduleLog,
+						"agent_id": agent.Id,
+						"address":  agentsNode.Node.Address,
+					}).Info("discovered a new llm")
+
+					err = s.store.Store(agent, agentsNode.Node)
+					if err != nil {
+						s.logger.WithError(err).WithField("module", moduleLog).Error("error storing llm")
+						continue
+					}
+					s.logger.WithFields(logrus.Fields{
+						"module":   moduleLog,
+						"agent_id": agent.Id,
+					}).Debug("llm stored successfully")
 				}
-				s.logger.WithFields(logrus.Fields{
-					"module":   moduleLog,
-					"agent_id": agent.Id,
-				}).Debug("llm stored successfully")
 			}
 		}
 	}

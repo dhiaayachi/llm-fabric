@@ -3,25 +3,32 @@ syntax = "proto3";
 package agent_info.v1;
 
 option go_package = "github.com/dhiaayachi/llm-fabric/proto/gen/agent_info";
-message AgentInfo {
+message NodeInfo {
 
   // port is the port assigned to the workload
   string address = 1;
 
   int32 port = 2;
+}
 
+message AgentsNodeInfo{
+  NodeInfo  node = 1;
+  repeated AgentInfo agents = 2;
+}
+
+message AgentInfo {
   // description opaque description
-  string description = 3;
+  string description = 1;
 
-  repeated Capability capabilities = 4;
+  repeated Capability capabilities = 2;
 
-  repeated Tool tools = 5;
+  repeated Tool tools = 3;
 
-  string id = 6;
+  string id = 4;
 
-  float cost = 7;
+  float cost = 5;
 
-  float score = 8;
+  float score = 6;
 }
 
 message Capability{

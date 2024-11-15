@@ -32,15 +32,21 @@ func main() {
 		logrus.Fatalf("failed to parse GRPC_PORT as integer: %v", err)
 	}
 
-	agentInfo := agentinfo.AgentInfo{
-		Description: "Ollama agent_info",
-		Capabilities: []*agentinfo.Capability{
-			{Id: "4", Description: "capability based tasks dispatcher"},
+	agentInfo := agentinfo.AgentsNodeInfo{
+		Agents: []*agentinfo.AgentInfo{
+			{
+				Description: "Ollama agent_info",
+				Capabilities: []*agentinfo.Capability{
+					{Id: "4", Description: "capability based tasks dispatcher"},
+				},
+				Tools: make([]*agentinfo.Tool, 0),
+				Id:    ulid.Make().String(),
+				Cost:  1,
+			},
 		},
-		Tools: make([]*agentinfo.Tool, 0),
-		Id:    ulid.Make().String(),
-		Port:  int32(grpcPort),
-		Cost:  1,
+		Node: &agentinfo.NodeInfo{
+			Port: int32(grpcPort),
+		},
 	}
 
 	logger := logrus.New()

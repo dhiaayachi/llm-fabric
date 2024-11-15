@@ -41,13 +41,13 @@ type MockStore struct {
 	mock.Mock
 }
 
-func (m *MockStore) GetAll() []*agentinfo.AgentInfo {
+func (m *MockStore) GetAll() []*agentinfo.AgentsNodeInfo {
 	args := m.Called()
-	return args.Get(0).([]*agentinfo.AgentInfo)
+	return args.Get(0).([]*agentinfo.AgentsNodeInfo)
 }
 
-func (m *MockStore) Store(agent *agentinfo.AgentInfo) error {
-	args := m.Called(agent)
+func (m *MockStore) Store(agent *agentinfo.AgentInfo, node *agentinfo.NodeInfo) error {
+	args := m.Called(agent, node)
 	return args.Error(0)
 }
 
@@ -72,7 +72,7 @@ func TestJoin_Success(t *testing.T) {
 	}
 
 	ctx, cancel := context.WithCancel(context.Background())
-	err := discoverer.Join(ctx, []string{"127.0.0.1"}, &agentinfo.AgentInfo{})
+	err := discoverer.Join(ctx, []string{"127.0.0.1"}, &agentinfo.AgentsNodeInfo{})
 	defer cancel()
 	assert.NoError(t, err, "Join should not return an error")
 	mockSerf.AssertExpectations(t)
@@ -93,7 +93,7 @@ func TestJoin_Failure(t *testing.T) {
 	}
 
 	ctx, cancel := context.WithCancel(context.Background())
-	err := discoverer.Join(ctx, []string{"127.0.0.1"}, &agentinfo.AgentInfo{})
+	err := discoverer.Join(ctx, []string{"127.0.0.1"}, &agentinfo.AgentsNodeInfo{})
 	defer cancel()
 	assert.Error(t, err, "Join should return an error on failure")
 	mockSerf.AssertExpectations(t)
@@ -110,7 +110,7 @@ func TestConsumeEvts_ProcessUserEvent_StoreFailure(t *testing.T) {
 	member := serf.Member{Name: "local-llm", Addr: net.ParseIP("127.0.0.1")}
 	mockSerf.On("LocalMember").Return(member)
 
-	agent := &agentinfo.AgentInfo{Id: "test-llm", Address: "127.0.0.1"}
+	agent := &agentinfo.AgentsNodeInfo{Node: &agentinfo.NodeInfo{Address: "127.0.0.1"}, Agents: []*agentinfo.AgentInfo{{Id: "test-llm"}}}
 	payload, _ := proto.Marshal(agent)
 	mockEvent := serf.UserEvent{Payload: payload}
 	mockStore.On("Store", mock.MatchedBy(func(a interface{}) bool {
@@ -126,7 +126,7 @@ func TestConsumeEvts_ProcessUserEvent_StoreFailure(t *testing.T) {
 		evtCh:  make(chan serf.Event, 1),
 		store:  mockStore,
 		logger: logger,
-		agent:  &agentinfo.AgentInfo{},
+		agent:  &agentinfo.AgentsNodeInfo{Node: &agentinfo.NodeInfo{Address: "127.0.0.1"}},
 	}
 
 	discoverer.evtCh <- mockEvent
@@ -165,7 +165,7 @@ func TestConsumeEvts_ProcessUserEvent(t *testing.T) {
 		evtCh:  make(chan serf.Event, 1),
 		store:  mockStore,
 		logger: logger,
-		agent:  &agentinfo.AgentInfo{},
+		agent:  &agentinfo.AgentsNodeInfo{Node: &agentinfo.NodeInfo{Address: "127.0.0.1"}},
 	}
 
 	discoverer.evtCh <- mockEvent
@@ -194,7 +194,7 @@ func TestConsumeEvts_UnmarshalError(t *testing.T) {
 		evtCh:  make(chan serf.Event, 1),
 		store:  mockStore,
 		logger: logger,
-		agent:  &agentinfo.AgentInfo{},
+		agent:  &agentinfo.AgentsNodeInfo{Node: &agentinfo.NodeInfo{Address: "127.0.0.1"}},
 	}
 
 	discoverer.evtCh <- mockEvent
@@ -225,7 +225,7 @@ func TestConsumeEvts_UserEvent(t *testing.T) {
 		evtCh:  make(chan serf.Event, 1),
 		store:  mockStore,
 		logger: logger,
-		agent:  &agentinfo.AgentInfo{},
+		agent:  &agentinfo.AgentsNodeInfo{Node: &agentinfo.NodeInfo{Address: "127.0.0.1"}},
 	}
 
 	ctx, cancel := context.WithCancel(context.Background())
@@ -282,7 +282,11 @@ func TestGetAgents_Success(t *testing.T) {
 		store:  mockStore,
 		logger: logger,
 	}
-	agentsExpected := []*agentinfo.AgentInfo{{Id: "1", Description: "agent_info 1"}, {Id: "2", Description: "agent_info 2"}}
+	agentsExpected := []*agentinfo.AgentsNodeInfo{{Node: &agentinfo.NodeInfo{Address: "127.0.0.1"},
+		Agents: []*agentinfo.AgentInfo{
+			{Id: "1", Description: "agent_info 1"},
+			{Id: "2", Description: "agent_info 2"},
+		}}}
 	mockStore.On("GetAll").Return(agentsExpected)
 
 	agents := discoverer.GetAgents()

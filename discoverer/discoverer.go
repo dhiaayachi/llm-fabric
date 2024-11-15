@@ -7,6 +7,6 @@ import (
 
 // Discoverer allow agents to discover each other.
 type Discoverer interface {
-	Join(ctx context.Context, addresses []string, agent *agentinfo.AgentInfo) error
-	GetAgents() []*agentinfo.AgentInfo
+	Join(ctx context.Context, addresses []string, agent *agentinfo.AgentsNodeInfo) error
+	GetAgents() []*agentinfo.AgentsNodeInfo
 }

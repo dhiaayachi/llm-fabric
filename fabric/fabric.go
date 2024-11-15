@@ -23,7 +23,7 @@ func (f Fabric) SubmitTask(ctx context.Context, task string) (string, error) {
 	taskAgents := f.strategy.Execute(task, f.discoverer.GetAgents(), f.localLlm)
 	rsps := make([]string, 0)
 	for _, taskAgent := range taskAgents {
-		client, err := agent.GetClient(taskAgent.Agent.Address, taskAgent.Agent.Port)
+		client, err := agent.GetClient(taskAgent.Node.Address, taskAgent.Node.Port)
 		if err != nil {
 			return "", err
 		}

@@ -15,12 +15,14 @@ type CapabilityDispatcher struct {
 	logger *logrus.Logger
 }
 
-func availableCapabilities(Agents []*agentinfo.AgentInfo) []*agentinfo.Capability {
+func availableCapabilities(agentsNodes []*agentinfo.AgentsNodeInfo) []*agentinfo.Capability {
 	res := make([]*agentinfo.Capability, 0)
 	capa := make(map[string]*agentinfo.Capability)
-	for _, a := range Agents {
-		for _, c := range a.Capabilities {
-			capa[c.Id] = c
+	for _, agentNode := range agentsNodes {
+		for _, a := range agentNode.Agents {
+			for _, c := range a.Capabilities {
+				capa[c.Id] = c
+			}
 		}
 	}
 	for _, c := range capa {
@@ -29,8 +31,8 @@ func availableCapabilities(Agents []*agentinfo.AgentInfo) []*agentinfo.Capabilit
 	return res
 }
 
-func (d *CapabilityDispatcher) Execute(task string, Agents []*agentinfo.AgentInfo, localLLM llm.Llm) []*strategy.TaskAgent {
-	capa := availableCapabilities(Agents)
+func (d *CapabilityDispatcher) Execute(task string, agentsNodes []*agentinfo.AgentsNodeInfo, localLLM llm.Llm) []*strategy.TaskAgent {
+	capa := availableCapabilities(agentsNodes)
 	prompt := "select the best capabilities to answer the following task:\\n\\n"
 	prompt = prompt + fmt.Sprintf("%s\\n\\n", task)
 	prompt = prompt + "the available capabilities are:\\n"
@@ -80,24 +82,25 @@ func (d *CapabilityDispatcher) Execute(task string, Agents []*agentinfo.AgentInf
 
 	d.logger.WithFields(logrus.Fields{"response": res}).Info("got a response!")
 
-	var capabaleAgents []*agentinfo.AgentInfo
-	for _, a := range Agents {
-		foundCap := false
-		for _, c := range res.Capabilities {
-			foundCap = false
-			for _, ca := range a.Capabilities {
-				if ca.Id == c.Id {
-					//found it
-					foundCap = true
-					break
+	type AgentNode struct {
+		agent *agentinfo.AgentInfo
+		node  *agentinfo.NodeInfo
+	}
+	var capabaleAgents []*AgentNode
+	for _, an := range agentsNodes {
+		for _, a := range an.Agents {
+			foundCap := 0
+			for _, c := range res.Capabilities {
+				for _, ca := range a.Capabilities {
+					if ca.Id == c.Id {
+						//found it
+						foundCap++
+					}
+				}
+				if foundCap == len(res.Capabilities) {
+					capabaleAgents = append(capabaleAgents, &AgentNode{agent: a, node: an.Node})
 				}
 			}
-			if !foundCap {
-				break
-			}
-		}
-		if foundCap {
-			capabaleAgents = append(capabaleAgents, a)
 		}
 	}
 
@@ -109,12 +112,12 @@ func (d *CapabilityDispatcher) Execute(task string, Agents []*agentinfo.AgentInf
 	d.logger.WithField("capabaleAgents", capabaleAgents).Info("found capable agents")
 	var selectedAgent = capabaleAgents[0]
 	for _, a := range capabaleAgents {
-		if selectedAgent.Cost > a.Cost {
+		if selectedAgent.agent.Cost > a.agent.Cost {
 			selectedAgent = a
 		}
 	}
 	d.logger.WithField("selectedAgent", selectedAgent).Info("selected agent")
-	return []*strategy.TaskAgent{{Agent: selectedAgent, Task: task}}
+	return []*strategy.TaskAgent{{Agent: selectedAgent.agent, Task: task, Node: selectedAgent.node}}
 }
 
 func (d *CapabilityDispatcher) Finalize(responses []string, _ llm.Llm) string {
