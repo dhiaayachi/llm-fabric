@@ -4,6 +4,11 @@ jobs:
     build:
       runs-on: ubuntu-latest
       steps:
-        - uses: actions/checkout@v2
-        - name: Build the stack
-          run: docker-compose build
+      # Check out the repository
+        - uses: actions/checkout@v4
+      # Run Docker Compose Action
+        - name: Build dispatcher example
+          uses: adambirds/docker-compose-action@v1.5.0
+          with:
+            compose-file: "./examples/dispatcher/docker-compose.yml"
+            up-flags: "--build --no-start"
