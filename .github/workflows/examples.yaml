@@ -10,5 +10,5 @@ jobs:
         - name: Build dispatcher example
           uses: adambirds/docker-compose-action@v1.5.0
           with:
-            compose-file: "./examples/dispatcher/docker-compose.yml"
+            compose-file: "./examples/dispatcher/docker-compose.yaml"
             up-flags: "--build --no-start"
