@@ -1,0 +1,17 @@
+syntax = "proto3";
+
+package llm_options.v1;
+option go_package = "github.com/dhiaayachi/llm-fabric/proto/gen/llm_options/v1";
+
+import "google/protobuf/any.proto";
+
+enum LlmOptType{
+  LLM_OPT_TYPE_UNSPECIFIED = 0;
+  LLM_OPT_TYPE_OLLAMA_RESPONSE_SCHEMA = 1;
+  LLM_OPT_TYPE_GPT_RESPONSE_FORMAT = 2;
+}
+
+message LlmOpt {
+  LlmOptType typ = 1;
+  google.protobuf.Any llm_opt_val = 2;
+}

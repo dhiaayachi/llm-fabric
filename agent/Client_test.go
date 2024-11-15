@@ -1,11 +1,13 @@
 package agent_test
 
 import (
+	"github.com/dhiaayachi/llm-fabric/proto/gen/agent_external/v1"
 	"net"
+	"strconv"
+	"strings"
 	"testing"
 
 	"github.com/dhiaayachi/llm-fabric/agent"
-	"github.com/dhiaayachi/llm-fabric/proto/gen/agent_info/v1"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"google.golang.org/grpc"
@@ -13,7 +15,7 @@ import (
 
 // Mock server implementation for AgentService
 type mockAgentServiceServer struct {
-	agent_info.UnimplementedAgentServiceServer
+	agent_external.UnimplementedAgentServiceServer
 }
 
 func startMockServer(t *testing.T) (string, func()) {
@@ -21,7 +23,7 @@ func startMockServer(t *testing.T) (string, func()) {
 	require.NoError(t, err, "failed to start TCP listener")
 
 	grpcServer := grpc.NewServer()
-	agent_info.RegisterAgentServiceServer(grpcServer, &mockAgentServiceServer{})
+	agent_external.RegisterAgentServiceServer(grpcServer, &mockAgentServiceServer{})
 
 	go func() {
 		if err := grpcServer.Serve(lis); err != nil {
@@ -41,8 +43,13 @@ func TestGetClient(t *testing.T) {
 	serverAddr, cleanup := startMockServer(t)
 	defer cleanup()
 
+	u := strings.Split(serverAddr, ":")
+	require.Len(t, u, 2)
+
+	portNum, err := strconv.Atoi(u[1])
+	require.NoError(t, err)
 	// Get a client using the GetClient function
-	client, err := agent.GetClient(serverAddr)
+	client, err := agent.GetClient(u[0], int32(portNum))
 	require.NoError(t, err, "GetClient failed")
 	require.NotNil(t, client, "client should not be nil")
 
@@ -53,7 +60,7 @@ func TestGetClient(t *testing.T) {
 
 func TestGetClient_InvalidAddress(t *testing.T) {
 	// Try to connect to an invalid address
-	client, err := agent.GetClient("%%%invalid/")
+	client, err := agent.GetClient("%%%invalid/", 333)
 	require.Error(t, err, "GetClient should return an error")
 	require.Nil(t, client, "client should be nil")
 }

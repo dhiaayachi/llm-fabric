@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/dhiaayachi/llm-fabric/llm"
 	agentinfo "github.com/dhiaayachi/llm-fabric/proto/gen/agent_info/v1"
+	llmoptions "github.com/dhiaayachi/llm-fabric/proto/gen/llm_options/v1"
 	"github.com/dhiaayachi/llm-fabric/strategy"
 	"github.com/sirupsen/logrus"
 )
@@ -41,7 +42,7 @@ func (d *CapabilityDispatcher) Execute(task string, Agents []*agentinfo.AgentInf
 	prompt = prompt + "\\n select a sub set of capabilities that an AI agent_info should have to solve this task, return a subset of capabilities that are needed to solve this task. Only select from the provided capabilities" +
 		"(minimum 1 and maximum 3)"
 
-	o := &agentinfo.LlmOpt{Typ: agentinfo.LlmOptType_LLM_OPT_TYPE_OLLAMA_RESPONSE_SCHEMA}
+	o := &llmoptions.LlmOpt{Typ: llmoptions.LlmOptType_LLM_OPT_TYPE_OLLAMA_RESPONSE_SCHEMA}
 	type result struct {
 		Capabilities []struct {
 			Id          string `json:"id"`

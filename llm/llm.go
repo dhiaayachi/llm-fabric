@@ -3,7 +3,7 @@ package llm
 import (
 	"context"
 	"encoding/json"
-	agentinfo "github.com/dhiaayachi/llm-fabric/proto/gen/agent_info/v1"
+	llmoptions "github.com/dhiaayachi/llm-fabric/proto/gen/llm_options/v1"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/anypb"
 	"google.golang.org/protobuf/types/known/wrapperspb"
@@ -11,10 +11,10 @@ import (
 
 type Llm interface {
 	// SubmitTask TODO: task need to be changed to proto eventually
-	SubmitTask(ctx context.Context, task string, opts ...*agentinfo.LlmOpt) (response string, err error)
+	SubmitTask(ctx context.Context, task string, opts ...*llmoptions.LlmOpt) (response string, err error)
 }
 
-func getOpt[T any](typ agentinfo.LlmOptType, opts ...*agentinfo.LlmOpt) T {
+func getOpt[T any](typ llmoptions.LlmOptType, opts ...*llmoptions.LlmOpt) T {
 	var empty T
 	for _, o := range opts {
 		if o.Typ == typ {
@@ -29,7 +29,7 @@ func getOpt[T any](typ agentinfo.LlmOptType, opts ...*agentinfo.LlmOpt) T {
 	return empty
 }
 
-func GetVal[T any](o *agentinfo.LlmOpt) (T, error) {
+func GetVal[T any](o *llmoptions.LlmOpt) (T, error) {
 	var value T
 	bytesValue := &wrapperspb.BytesValue{}
 	err := anypb.UnmarshalTo(o.GetLlmOptVal(), bytesValue, proto.UnmarshalOptions{})
@@ -43,7 +43,7 @@ func GetVal[T any](o *agentinfo.LlmOpt) (T, error) {
 	return value, nil
 }
 
-func FromVal[T any](o *agentinfo.LlmOpt, v T) error {
+func FromVal[T any](o *llmoptions.LlmOpt, v T) error {
 	anyValue := &anypb.Any{}
 	bytes, _ := json.Marshal(v)
 	bytesValue := &wrapperspb.BytesValue{

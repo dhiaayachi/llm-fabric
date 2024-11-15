@@ -3,7 +3,7 @@ package llm
 import (
 	"context"
 	"fmt"
-	agentinfo "github.com/dhiaayachi/llm-fabric/proto/gen/agent_info/v1"
+	llmoptions "github.com/dhiaayachi/llm-fabric/proto/gen/llm_options/v1"
 	"github.com/sirupsen/logrus"
 	"github.com/tmc/langchaingo/llms"
 	"github.com/tmc/langchaingo/llms/ollama"
@@ -20,13 +20,13 @@ type OllamaClient struct {
 var _ Llm = &OllamaClient{}
 
 // SubmitTask sends a task (prompt) to the Ollama API and returns all responses as a concatenated string.
-func (c *OllamaClient) SubmitTask(ctx context.Context, task string, opts ...*agentinfo.LlmOpt) (string, error) {
+func (c *OllamaClient) SubmitTask(ctx context.Context, task string, opts ...*llmoptions.LlmOpt) (string, error) {
 	logger := c.logger.WithFields(logrus.Fields{
 		"task": task,
 	})
 	logger.Info("Submitting task to Ollama")
 
-	schema := getOpt[string](agentinfo.LlmOptType_LLM_OPT_TYPE_OLLAMA_RESPONSE_SCHEMA, opts...)
+	schema := getOpt[string](llmoptions.LlmOptType_LLM_OPT_TYPE_OLLAMA_RESPONSE_SCHEMA, opts...)
 
 	var llmOpts []ollama.Option
 	if c.url != "" {

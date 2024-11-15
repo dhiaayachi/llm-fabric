@@ -3,7 +3,7 @@ package agent
 import (
 	"context"
 	"github.com/dhiaayachi/llm-fabric/llm"
-	agentinfo "github.com/dhiaayachi/llm-fabric/proto/gen/agent_info/v1"
+	"github.com/dhiaayachi/llm-fabric/proto/gen/agent_external/v1"
 	"github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
 	"net"
@@ -11,7 +11,7 @@ import (
 )
 
 type Server struct {
-	agentinfo.UnimplementedAgentServiceServer
+	agent_external.UnimplementedAgentServiceServer
 	srv        *grpc.Server
 	llm        llm.Llm
 	logger     *logrus.Logger
@@ -24,8 +24,8 @@ type Config struct {
 	Logger     *logrus.Logger
 }
 
-func (srv *Server) SubmitTask(ctx context.Context, request *agentinfo.SubmitTaskRequest) (*agentinfo.SubmitTaskResponse, error) {
-	resp := &agentinfo.SubmitTaskResponse{}
+func (srv *Server) SubmitTask(ctx context.Context, request *agent_external.SubmitTaskRequest) (*agent_external.SubmitTaskResponse, error) {
+	resp := &agent_external.SubmitTaskResponse{}
 	response, err := srv.llm.SubmitTask(ctx, request.Task, request.Opts...)
 	if err != nil {
 		return nil, err
@@ -34,11 +34,11 @@ func (srv *Server) SubmitTask(ctx context.Context, request *agentinfo.SubmitTask
 	return resp, nil
 }
 
-var _ agentinfo.AgentServiceServer = &Server{}
+var _ agent_external.AgentServiceServer = &Server{}
 
 func NewServer(llm llm.Llm, conf *Config) *Server {
 	srv := Server{srv: grpc.NewServer(), llm: llm, logger: conf.Logger, ListenAddr: conf.ListenAddr}
-	srv.srv.RegisterService(&agentinfo.AgentService_ServiceDesc, &srv)
+	srv.srv.RegisterService(&agent_external.AgentService_ServiceDesc, &srv)
 	return &srv
 }
 

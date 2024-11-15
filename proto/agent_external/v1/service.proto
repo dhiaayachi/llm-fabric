@@ -1,0 +1,18 @@
+syntax = "proto3";
+
+package agent_external.v1;
+import "llm_options/v1/options.proto";
+option go_package = "github.com/dhiaayachi/llm-fabric/proto/gen/agent_external";
+
+message SubmitTaskRequest {
+  string task = 1;
+  repeated llm_options.v1.LlmOpt opts = 2;
+}
+message SubmitTaskResponse{
+  string response = 1;
+}
+
+service AgentService{
+  rpc SubmitTask(SubmitTaskRequest) returns (SubmitTaskResponse) {
+  }
+}

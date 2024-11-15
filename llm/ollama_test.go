@@ -3,13 +3,13 @@ package llm_test
 import (
 	"context"
 	"encoding/json"
+	llmoptions "github.com/dhiaayachi/llm-fabric/proto/gen/llm_options/v1"
 	"github.com/stretchr/testify/require"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 
 	"github.com/dhiaayachi/llm-fabric/llm"
-	agentinfo "github.com/dhiaayachi/llm-fabric/proto/gen/agent_info/v1"
 	_ "github.com/sirupsen/logrus"
 	"github.com/sirupsen/logrus/hooks/test"
 	"github.com/stretchr/testify/assert"
@@ -50,7 +50,7 @@ func TestSubmitTask_Success(t *testing.T) {
 	require.NoError(t, err)
 
 	// Call SubmitTask
-	o := &agentinfo.LlmOpt{Typ: agentinfo.LlmOptType_LLM_OPT_TYPE_OLLAMA_RESPONSE_SCHEMA}
+	o := &llmoptions.LlmOpt{Typ: llmoptions.LlmOptType_LLM_OPT_TYPE_OLLAMA_RESPONSE_SCHEMA}
 	err = llm.FromVal[string](o, string(marsh))
 	require.NoError(t, err)
 	responses, err := ollamaClient.SubmitTask(context.Background(), "Hello", o)
@@ -71,7 +71,7 @@ func TestSubmitTask_Error(t *testing.T) {
 	ollamaClient := llm.NewOllama(server.URL, logger, "test-model", "user")
 
 	// Call SubmitTask and expect an error
-	o := &agentinfo.LlmOpt{Typ: agentinfo.LlmOptType_LLM_OPT_TYPE_OLLAMA_RESPONSE_SCHEMA}
+	o := &llmoptions.LlmOpt{Typ: llmoptions.LlmOptType_LLM_OPT_TYPE_OLLAMA_RESPONSE_SCHEMA}
 	err := llm.FromVal(o, "json")
 	require.NoError(t, err)
 	responses, err := ollamaClient.SubmitTask(context.Background(), "Hello", o)

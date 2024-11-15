@@ -2,9 +2,6 @@ syntax = "proto3";
 
 package agent_info.v1;
 
-import "google/api/annotations.proto";
-import "google/protobuf/any.proto";
-
 option go_package = "github.com/dhiaayachi/llm-fabric/proto/gen/agent_info";
 message AgentInfo {
 
@@ -42,33 +39,7 @@ message Tool {
   string name = 1;
   string description = 2;
   ToolType type = 3;
- }
-
- message SubmitTaskRequest {
-   string task = 1;
-   repeated LlmOpt opts = 2;
- }
-
- message SubmitTaskResponse{
-  string response = 1;
- }
-
-service AgentService{
-  rpc SubmitTask(SubmitTaskRequest) returns (SubmitTaskResponse) {
-    option (google.api.http) = {
-              post: "/v1/submittask"
-               body: "*"
-            };
-  }
 }
 
-enum LlmOptType{
-  LLM_OPT_TYPE_UNSPECIFIED = 0;
-  LLM_OPT_TYPE_OLLAMA_RESPONSE_SCHEMA = 1;
-  LLM_OPT_TYPE_GPT_RESPONSE_FORMAT = 2;
-}
 
-message LlmOpt {
-  LlmOptType typ = 1;
-  google.protobuf.Any llm_opt_val = 2;
-}
+

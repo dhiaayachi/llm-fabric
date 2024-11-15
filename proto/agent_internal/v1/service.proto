@@ -1,0 +1,20 @@
+syntax = "proto3";
+
+package agent_internal.v1;
+
+import "llm_options/v1/options.proto";
+option go_package = "github.com/dhiaayachi/llm-fabric/proto/gen/agent_internal";
+
+
+message DispatchTaskRequest {
+  string task = 1;
+  repeated llm_options.v1.LlmOpt opts = 2;
+}
+message DispatchTaskResponse{
+  string response = 1;
+}
+
+service AgentService{
+  rpc DispatchTask(DispatchTaskRequest) returns (DispatchTaskResponse) {
+  }
+}

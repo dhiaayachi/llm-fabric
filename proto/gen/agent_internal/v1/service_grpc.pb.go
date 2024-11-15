@@ -2,9 +2,9 @@
 // versions:
 // - protoc-gen-go-grpc v1.5.1
 // - protoc             (unknown)
-// source: agent_info/v1/agent_info.proto
+// source: agent_internal/v1/service.proto
 
-package agent_info
+package agent_internal
 
 import (
 	context "context"
@@ -19,14 +19,14 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	AgentService_SubmitTask_FullMethodName = "/agent_info.v1.AgentService/SubmitTask"
+	AgentService_DispatchTask_FullMethodName = "/agent_internal.v1.AgentService/DispatchTask"
 )
 
 // AgentServiceClient is the client API for AgentService service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type AgentServiceClient interface {
-	SubmitTask(ctx context.Context, in *SubmitTaskRequest, opts ...grpc.CallOption) (*SubmitTaskResponse, error)
+	DispatchTask(ctx context.Context, in *DispatchTaskRequest, opts ...grpc.CallOption) (*DispatchTaskResponse, error)
 }
 
 type agentServiceClient struct {
@@ -37,10 +37,10 @@ func NewAgentServiceClient(cc grpc.ClientConnInterface) AgentServiceClient {
 	return &agentServiceClient{cc}
 }
 
-func (c *agentServiceClient) SubmitTask(ctx context.Context, in *SubmitTaskRequest, opts ...grpc.CallOption) (*SubmitTaskResponse, error) {
+func (c *agentServiceClient) DispatchTask(ctx context.Context, in *DispatchTaskRequest, opts ...grpc.CallOption) (*DispatchTaskResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(SubmitTaskResponse)
-	err := c.cc.Invoke(ctx, AgentService_SubmitTask_FullMethodName, in, out, cOpts...)
+	out := new(DispatchTaskResponse)
+	err := c.cc.Invoke(ctx, AgentService_DispatchTask_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -51,7 +51,7 @@ func (c *agentServiceClient) SubmitTask(ctx context.Context, in *SubmitTaskReque
 // All implementations must embed UnimplementedAgentServiceServer
 // for forward compatibility.
 type AgentServiceServer interface {
-	SubmitTask(context.Context, *SubmitTaskRequest) (*SubmitTaskResponse, error)
+	DispatchTask(context.Context, *DispatchTaskRequest) (*DispatchTaskResponse, error)
 	mustEmbedUnimplementedAgentServiceServer()
 }
 
@@ -62,8 +62,8 @@ type AgentServiceServer interface {
 // pointer dereference when methods are called.
 type UnimplementedAgentServiceServer struct{}
 
-func (UnimplementedAgentServiceServer) SubmitTask(context.Context, *SubmitTaskRequest) (*SubmitTaskResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method SubmitTask not implemented")
+func (UnimplementedAgentServiceServer) DispatchTask(context.Context, *DispatchTaskRequest) (*DispatchTaskResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DispatchTask not implemented")
 }
 func (UnimplementedAgentServiceServer) mustEmbedUnimplementedAgentServiceServer() {}
 func (UnimplementedAgentServiceServer) testEmbeddedByValue()                      {}
@@ -86,20 +86,20 @@ func RegisterAgentServiceServer(s grpc.ServiceRegistrar, srv AgentServiceServer)
 	s.RegisterService(&AgentService_ServiceDesc, srv)
 }
 
-func _AgentService_SubmitTask_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(SubmitTaskRequest)
+func _AgentService_DispatchTask_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DispatchTaskRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(AgentServiceServer).SubmitTask(ctx, in)
+		return srv.(AgentServiceServer).DispatchTask(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: AgentService_SubmitTask_FullMethodName,
+		FullMethod: AgentService_DispatchTask_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(AgentServiceServer).SubmitTask(ctx, req.(*SubmitTaskRequest))
+		return srv.(AgentServiceServer).DispatchTask(ctx, req.(*DispatchTaskRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -108,14 +108,14 @@ func _AgentService_SubmitTask_Handler(srv interface{}, ctx context.Context, dec 
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
 var AgentService_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "agent_info.v1.AgentService",
+	ServiceName: "agent_internal.v1.AgentService",
 	HandlerType: (*AgentServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
-			MethodName: "SubmitTask",
-			Handler:    _AgentService_SubmitTask_Handler,
+			MethodName: "DispatchTask",
+			Handler:    _AgentService_DispatchTask_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "agent_info/v1/agent_info.proto",
+	Metadata: "agent_internal/v1/service.proto",
 }

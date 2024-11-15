@@ -3,7 +3,7 @@ package llm
 import (
 	"context"
 	"fmt"
-	agentinfo "github.com/dhiaayachi/llm-fabric/proto/gen/agent_info/v1"
+	llmoptions "github.com/dhiaayachi/llm-fabric/proto/gen/llm_options/v1"
 	"github.com/sashabaranov/go-openai"
 	"github.com/sashabaranov/go-openai/jsonschema"
 	"github.com/sirupsen/logrus"
@@ -19,12 +19,12 @@ type GPT struct {
 var _ Llm = &GPT{}
 
 // SubmitTask sends a task (prompt) to the OpenAI ChatGPT API and returns all responses as a slice of strings.
-func (c *GPT) SubmitTask(ctx context.Context, task string, opts ...*agentinfo.LlmOpt) (string, error) {
+func (c *GPT) SubmitTask(ctx context.Context, task string, opts ...*llmoptions.LlmOpt) (string, error) {
 	logger := c.logger.WithFields(logrus.Fields{
 		"task": task})
 	logger.Info("Submitting task to ChatGPT")
 
-	schema := getOpt[*jsonschema.Definition](agentinfo.LlmOptType_LLM_OPT_TYPE_GPT_RESPONSE_FORMAT, opts...)
+	schema := getOpt[*jsonschema.Definition](llmoptions.LlmOptType_LLM_OPT_TYPE_GPT_RESPONSE_FORMAT, opts...)
 	var rspFormat *openai.ChatCompletionResponseFormat
 	if schema != nil {
 		rspFormat = &openai.ChatCompletionResponseFormat{
