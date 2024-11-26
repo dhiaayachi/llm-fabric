@@ -1,0 +1,22 @@
+
+syntax = "proto3";
+package strategy.v1;
+
+option go_package = "github.com/dhiaayachi/llm-fabric/proto/gen/strategy";
+
+// The greeting service definition.
+// go:plugin type=plugin version=1
+service StrategyService {
+  // Sends a greeting
+  rpc Execute(ExecuteRequest) returns (ExecuteResponse) {}
+}
+
+// The request message containing the user's name.
+message ExecuteRequest {
+  string name = 1;
+}
+
+// The reply message containing the greetings
+message ExecuteResponse {
+  string message = 1;
+}

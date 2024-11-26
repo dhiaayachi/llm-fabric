@@ -13,3 +13,7 @@ plugins:
     out: proto/gen/
     opt:
       - paths=source_relative
+  - local: protoc-gen-go-plugin
+    out: proto/gen/
+    opt:
+      - paths=source_relative,disable_pb_gen=true

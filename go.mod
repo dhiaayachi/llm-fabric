@@ -4,10 +4,12 @@ go 1.23.1
 
 require (
 	github.com/hashicorp/serf v0.10.1
+	github.com/knqyf263/go-plugin v0.8.0
 	github.com/liushuangls/go-anthropic v1.6.0
 	github.com/sashabaranov/go-openai v1.35.6
 	github.com/sirupsen/logrus v1.9.3
 	github.com/stretchr/testify v1.9.0
+	github.com/tetratelabs/wazero v1.8.2
 	github.com/tmc/langchaingo v0.1.12
 	google.golang.org/grpc v1.67.1
 	google.golang.org/protobuf v1.35.1
