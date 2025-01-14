@@ -4,7 +4,7 @@
 // 	protoc               (unknown)
 // source: agent_info/v1/agent_info.proto
 
-package agent_info
+package v1
 
 import (
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"

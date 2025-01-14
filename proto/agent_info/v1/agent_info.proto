@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package agent_info.v1;
 
-option go_package = "github.com/dhiaayachi/llm-fabric/proto/gen/agent_info";
+option go_package = "github.com/dhiaayachi/llm-fabric/proto/gen/agent_info/v1";
 message NodeInfo {
 
   // port is the port assigned to the workload

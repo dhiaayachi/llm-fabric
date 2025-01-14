@@ -2,7 +2,9 @@
 syntax = "proto3";
 package strategy.v1;
 
-option go_package = "github.com/dhiaayachi/llm-fabric/proto/gen/strategy";
+import "agent_info/v1/agent_info.proto";
+
+option go_package = "github.com/dhiaayachi/llm-fabric/proto/gen/strategy/v1";
 
 // The greeting service definition.
 // go:plugin type=plugin version=1
@@ -13,10 +15,19 @@ service StrategyService {
 
 // The request message containing the user's name.
 message ExecuteRequest {
-  string name = 1;
+  string task = 1;
+  repeated agent_info.v1.AgentInfo agents = 2;
+  int32 local_idx = 3;
 }
 
 // The reply message containing the greetings
 message ExecuteResponse {
-  string message = 1;
+  repeated TaskAgents task_agents = 3;
+
+}
+
+message TaskAgents {
+  string task = 1;
+  agent_info.v1.AgentInfo agent = 2;
+  agent_info.v1.NodeInfo node = 3;
 }
