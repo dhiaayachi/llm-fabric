@@ -2,12 +2,12 @@ package main
 
 import (
 	"context"
-	"fmt"
-	"github.com/dhiaayachi/llm-fabric/agent"
 	"github.com/dhiaayachi/llm-fabric/discoverer"
 	"github.com/dhiaayachi/llm-fabric/discoverer/store"
+	"github.com/dhiaayachi/llm-fabric/fabric"
 	"github.com/dhiaayachi/llm-fabric/llm"
 	agentinfo "github.com/dhiaayachi/llm-fabric/proto/gen/agent_info/v1"
+	"github.com/dhiaayachi/llm-fabric/strategy"
 	"github.com/hashicorp/serf/serf"
 	"github.com/oklog/ulid/v2"
 	"github.com/sirupsen/logrus"
@@ -17,6 +17,20 @@ import (
 	"strings"
 	"time"
 )
+
+type NoDispatcher struct {
+	logger *logrus.Logger
+}
+
+func (n NoDispatcher) Execute(task string, Agents []*agentinfo.AgentsNodeInfo, localLLM llm.Llm) []*strategy.TaskAgent {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (n NoDispatcher) Finalize(responses []string, localLLM llm.Llm) string {
+	//TODO implement me
+	panic("implement me")
+}
 
 func main() {
 
@@ -77,8 +91,7 @@ func main() {
 	}
 	l := llm.NewOllama(parse.String(), logger, "llama3.2", "dispatcher")
 
-	srv := agent.NewServer(l, &agent.Config{Logger: logger, ListenAddr: fmt.Sprintf("0.0.0.0:%d", grpcPort)})
-	srv.Start(ctx)
+	_ = fabric.NewFabric(ctx, dicso, &NoDispatcher{logger: logger}, l, logger, grpcPort)
 	select {
 	case <-ctx.Done():
 	}

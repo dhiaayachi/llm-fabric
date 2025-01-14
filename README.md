@@ -32,6 +32,7 @@ docker compose up
 ## Configuration
 
 Configuration can be done by setting up specific parameters when initializing each LLM client. For example, `NewOllama` and `NewGPT` allow setting capabilities, tools, and logging preferences.
+See the [examples](https://github.com/dhiaayachi/llm-fabric/tree/e594fa250646d915baf59f40f7c2ff4ea7ca392a/examples) for more details
 
 ### Environment Variables
 
@@ -42,7 +43,32 @@ Set up environment variables to configure API keys for different providers:
 
 
 
-## Development
+## Implementation
+
+llm-fabric is a framework composed of multiple components. Most components are wrapped in an interface to allow 
+multiple implementations and extensibility.
+
+#### Fabric
+
+This is the core component that instantiate a new fabric and which depends on all the other components.
+
+#### LLM
+
+This is a thin wrapper around a given llm API and provide a common API to interact with those LLMs. 
+It's implemented for `GPT`, `Ollama`, `Anthropic` for the time being.
+A new implementation could be added by implementing 
+the [llm interface](https://github.com/dhiaayachi/llm-fabric/blob/main/llm/llm.go#L58-L58)
+
+#### Discoverer
+
+This component is responsible for discovering other LLMs added to the fabric. The current implementation leverage 
+[hashicorp/serf](github.com/hashicorp/serf) library. A new implementation need to implement 
+the [dicoverer interface](https://github.com/dhiaayachi/llm-fabric/blob/main/discoverer/discoverer.go#L11-L11)
+
+#### Agent
+
+This is responsible for implementing the communication interface between all the agents (using gRPC) and 
+allow agents to instantiate gRPC servers and clients 
 
 ### Running Unit Tests
 

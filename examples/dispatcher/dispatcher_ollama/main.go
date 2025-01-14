@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"github.com/oklog/ulid/v2"
 	"net/url"
 	"os"
@@ -10,7 +9,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/dhiaayachi/llm-fabric/agent"
 	"github.com/dhiaayachi/llm-fabric/discoverer"
 	"github.com/dhiaayachi/llm-fabric/discoverer/store"
 	"github.com/dhiaayachi/llm-fabric/fabric"
@@ -78,11 +76,8 @@ func main() {
 	}
 	l := llm.NewOllama(parse.String(), logger, "llama3.2", "dispatcher")
 
-	srv := agent.NewServer(l, &agent.Config{Logger: logger, ListenAddr: fmt.Sprintf("0.0.0.0:%d", grpcPort)})
-	srv.Start(ctx)
-
 	// Create fabric
-	f := fabric.NewFabric(dicso, &CapabilityDispatcher{logger: logger}, l)
+	f := fabric.NewFabric(ctx, dicso, &CapabilityDispatcher{logger: logger}, l, logger, grpcPort)
 	response, err := f.SubmitTask(context.Background(), "Can you summarize this text?: Johannes Gutenberg (1398 – 1468) "+
 		"was a German goldsmith and publisher who introduced printing to Europe. His introduction of mechanical "+
 		"movable type printing to Europe started the Printing Revolution and is widely regarded as the most important "+

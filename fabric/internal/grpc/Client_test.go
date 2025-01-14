@@ -1,13 +1,13 @@
-package agent_test
+package grpc_test
 
 import (
+	grpc2 "github.com/dhiaayachi/llm-fabric/fabric/internal/grpc"
 	"github.com/dhiaayachi/llm-fabric/proto/gen/agent_external/v1"
 	"net"
 	"strconv"
 	"strings"
 	"testing"
 
-	"github.com/dhiaayachi/llm-fabric/agent"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"google.golang.org/grpc"
@@ -49,7 +49,7 @@ func TestGetClient(t *testing.T) {
 	portNum, err := strconv.Atoi(u[1])
 	require.NoError(t, err)
 	// Get a client using the GetClient function
-	client, err := agent.GetClient(u[0], int32(portNum))
+	client, err := grpc2.GetClient(u[0], int32(portNum))
 	require.NoError(t, err, "GetClient failed")
 	require.NotNil(t, client, "client should not be nil")
 
@@ -60,7 +60,7 @@ func TestGetClient(t *testing.T) {
 
 func TestGetClient_InvalidAddress(t *testing.T) {
 	// Try to connect to an invalid address
-	client, err := agent.GetClient("%%%invalid/", 333)
+	client, err := grpc2.GetClient("%%%invalid/", 333)
 	require.Error(t, err, "GetClient should return an error")
 	require.Nil(t, client, "client should be nil")
 }
