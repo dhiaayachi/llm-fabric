@@ -93,7 +93,6 @@ func (d *CapabilityDispatcher) Execute(task string, agentsNodes []*agentinfo.Age
 			for _, c := range res.Capabilities {
 				for _, ca := range a.Capabilities {
 					if ca.Id == c.Id {
-						//found it
 						foundCap++
 					}
 				}

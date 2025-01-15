@@ -12,25 +12,12 @@ import (
 	"github.com/oklog/ulid/v2"
 	"github.com/sashabaranov/go-openai"
 	"github.com/sirupsen/logrus"
+	"log"
 	"os"
 	"strconv"
 	"strings"
 	"time"
 )
-
-type NoDispatcher struct {
-	logger *logrus.Logger
-}
-
-func (n NoDispatcher) Execute(task string, Agents []*agentinfo.AgentsNodeInfo, localLLM llm.Llm) []*strategy.TaskAgent {
-	//TODO implement me
-	panic("implement me")
-}
-
-func (n NoDispatcher) Finalize(responses []string, localLLM llm.Llm) string {
-	//TODO implement me
-	panic("implement me")
-}
 
 func main() {
 
@@ -64,11 +51,18 @@ func main() {
 	}
 
 	logger := logrus.New()
+	logger.SetLevel(logrus.InfoLevel)
+	w := logger.WriterLevel(logrus.DebugLevel)
+
+	// note that you are responsible for closing the writer
+	defer w.Close()
 
 	// Create discoverer
 	s := store.NewInMemoryStore()
 
 	serfConf := serf.DefaultConfig()
+
+	serfConf.Logger = log.New(w, "", 0)
 
 	serfConf.MemberlistConfig.BindAddr = "0.0.0.0"
 	serfConf.MemberlistConfig.BindPort = serfPort
@@ -87,7 +81,7 @@ func main() {
 	// Create local llm
 	l := llm.NewGPT(openai.DefaultConfig(os.Getenv("OPENAI_TOKEN")), logger, "gpt-4o-2024-08-06", "assistant")
 
-	_ = fabric.NewFabric(ctx, dicso, &NoDispatcher{logger: logger}, l, logger, grpcPort)
+	_ = fabric.NewAgent(ctx, dicso, []strategy.Strategy{}, l, logger, grpcPort)
 	select {
 	case <-ctx.Done():
 	}
