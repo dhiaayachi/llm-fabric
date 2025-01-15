@@ -59,7 +59,7 @@ func main() {
 	if err != nil {
 		logrus.Fatal(err)
 	}
-	time.Sleep(10 * time.Second)
+	time.Sleep(30 * time.Second)
 
 	// Create fabric
 	c := fabric.NewClient(dicso, logger)
