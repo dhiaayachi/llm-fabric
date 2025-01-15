@@ -15,6 +15,21 @@ services:
     ports:
       - "2222/udp"
 
+  client:
+    image: client
+    restart: unless-stopped
+    build:
+      context: ../../
+      dockerfile: ./examples/dispatcher/client/Dockerfile
+    environment:
+      - SERF_PORT=2222
+      - GRPC_PORT=3442
+      - SERF_JOIN_ADDRS=client:2222 dispatcher:2222 summarizer:2222 summarizer2:2222
+    networks:
+      - fabric-net
+    ports:
+      - "2222/udp"
+
   summarizer:
     image: summarizer
     build:

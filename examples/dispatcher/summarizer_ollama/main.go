@@ -2,15 +2,16 @@ package main
 
 import (
 	"context"
-	"fmt"
-	"github.com/dhiaayachi/llm-fabric/agent"
 	"github.com/dhiaayachi/llm-fabric/discoverer"
 	"github.com/dhiaayachi/llm-fabric/discoverer/store"
+	"github.com/dhiaayachi/llm-fabric/fabric"
 	"github.com/dhiaayachi/llm-fabric/llm"
 	agentinfo "github.com/dhiaayachi/llm-fabric/proto/gen/agent_info/v1"
+	"github.com/dhiaayachi/llm-fabric/strategy"
 	"github.com/hashicorp/serf/serf"
 	"github.com/oklog/ulid/v2"
 	"github.com/sirupsen/logrus"
+	"log"
 	"net/url"
 	"os"
 	"strconv"
@@ -50,11 +51,18 @@ func main() {
 	}
 
 	logger := logrus.New()
+	logger.SetLevel(logrus.InfoLevel)
+	w := logger.WriterLevel(logrus.DebugLevel)
+
+	// note that you are responsible for closing the writer
+	defer w.Close()
 
 	// Create discoverer
 	s := store.NewInMemoryStore()
 
 	serfConf := serf.DefaultConfig()
+
+	serfConf.Logger = log.New(w, "", 0)
 
 	serfConf.MemberlistConfig.BindAddr = "0.0.0.0"
 	serfConf.MemberlistConfig.BindPort = serfPort
@@ -77,8 +85,7 @@ func main() {
 	}
 	l := llm.NewOllama(parse.String(), logger, "llama3.2", "dispatcher")
 
-	srv := agent.NewServer(l, &agent.Config{Logger: logger, ListenAddr: fmt.Sprintf("0.0.0.0:%d", grpcPort)})
-	srv.Start(ctx)
+	_ = fabric.NewAgent(ctx, dicso, []strategy.Strategy{}, l, logger, grpcPort)
 	select {
 	case <-ctx.Done():
 	}

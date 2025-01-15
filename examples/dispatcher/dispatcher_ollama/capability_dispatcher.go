@@ -14,51 +14,54 @@ import (
 type CapabilityDispatcher struct {
 	logger *logrus.Logger
 }
+type Agent struct {
+	Id           string                  `json:"id"`
+	Capabilities []*agentinfo.Capability `json:"capabilities"`
+}
 
-func availableCapabilities(agentsNodes []*agentinfo.AgentsNodeInfo) []*agentinfo.Capability {
-	res := make([]*agentinfo.Capability, 0)
-	capa := make(map[string]*agentinfo.Capability)
-	for _, agentNode := range agentsNodes {
-		for _, a := range agentNode.Agents {
-			for _, c := range a.Capabilities {
-				capa[c.Id] = c
-			}
+type AgentNode struct {
+	AgentDesc Agent `json:"agent_description"`
+	node      *agentinfo.NodeInfo
+	agent     *agentinfo.AgentInfo
+}
+
+func availableAgents(agentsNodes []*agentinfo.AgentsNodeInfo) map[string]*AgentNode {
+
+	res := make(map[string]*AgentNode)
+	for _, agentN := range agentsNodes {
+		for _, a := range agentN.Agents {
+			res[a.Id] = &AgentNode{AgentDesc: Agent{Id: a.Id, Capabilities: a.Capabilities}, node: agentN.Node, agent: a}
 		}
-	}
-	for _, c := range capa {
-		res = append(res, c)
 	}
 	return res
 }
 
 func (d *CapabilityDispatcher) Execute(task string, agentsNodes []*agentinfo.AgentsNodeInfo, localLLM llm.Llm) []*strategy.TaskAgent {
-	capa := availableCapabilities(agentsNodes)
-	prompt := "select the best capabilities to answer the following task:\\n\\n"
+	agents := availableAgents(agentsNodes)
+	prompt := "select the best agent to answer the following task based on its capabilities:\\n\\n"
 	prompt = prompt + fmt.Sprintf("%s\\n\\n", task)
-	prompt = prompt + "the available capabilities are:\\n"
-	marchal, err := json.Marshal(capa)
+	prompt = prompt + "the available agents are:\\n"
+	marchal, err := json.Marshal(agents)
 	if err != nil {
 		d.logger.Fatal(err)
 	}
 	prompt = prompt + fmt.Sprintf("%s\\n\\n", marchal)
-	prompt = prompt + "\\n select a sub set of capabilities that an AI agent_info should have to solve this task, return a subset of capabilities that are needed to solve this task. Only select from the provided capabilities" +
-		"(minimum 1 and maximum 3)"
 
 	o := &llmoptions.LlmOpt{Typ: llmoptions.LlmOptType_LLM_OPT_TYPE_OLLAMA_RESPONSE_SCHEMA}
 	type result struct {
-		Capabilities []struct {
-			Id          string `json:"id"`
-			Description string `json:"description"`
-		} `json:"capabilities"`
+		Agents []struct {
+			Id string `json:"id"`
+		} `json:"agents"`
 	}
 
-	v := result{Capabilities: []struct {
-		Id          string `json:"id"`
-		Description string `json:"description"`
-	}{
-		{Id: "Id of the selected capability",
-			Description: "Description of the selected capability"},
-	}}
+	v := result{
+		Agents: []struct {
+			Id string `json:"id"`
+		}{
+			{Id: "Id of the selected agent"},
+		},
+	}
+
 	schema, err := json.Marshal(v)
 	if err != nil {
 		d.logger.Fatal(err)
@@ -82,38 +85,20 @@ func (d *CapabilityDispatcher) Execute(task string, agentsNodes []*agentinfo.Age
 
 	d.logger.WithFields(logrus.Fields{"response": res}).Info("got a response!")
 
-	type AgentNode struct {
-		agent *agentinfo.AgentInfo
-		node  *agentinfo.NodeInfo
-	}
-	var capabaleAgents []*AgentNode
-	for _, an := range agentsNodes {
-		for _, a := range an.Agents {
-			foundCap := 0
-			for _, c := range res.Capabilities {
-				for _, ca := range a.Capabilities {
-					if ca.Id == c.Id {
-						//found it
-						foundCap++
-					}
-				}
-				if foundCap == len(res.Capabilities) {
-					capabaleAgents = append(capabaleAgents, &AgentNode{agent: a, node: an.Node})
-				}
-			}
-		}
-	}
-
-	if len(capabaleAgents) == 0 {
-		err := fmt.Errorf("could not find capability to solve")
+	if len(res.Agents) == 0 {
+		err := fmt.Errorf("could not find agent to solve")
 		d.logger.Fatal(err)
 		return nil
 	}
-	d.logger.WithField("capabaleAgents", capabaleAgents).Info("found capable agents")
-	var selectedAgent = capabaleAgents[0]
-	for _, a := range capabaleAgents {
-		if selectedAgent.agent.Cost > a.agent.Cost {
-			selectedAgent = a
+	d.logger.WithField("capabaleAgents", res.Agents).Info("found capable agents")
+
+	var selectedAgent = agents[res.Agents[0].Id]
+	leastCost := selectedAgent.agent.Cost
+
+	for _, agent := range res.Agents {
+		if leastCost > agents[agent.Id].agent.Cost {
+			leastCost = agents[agent.Id].agent.Cost
+			selectedAgent = agents[agent.Id]
 		}
 	}
 	d.logger.WithField("selectedAgent", selectedAgent).Info("selected agent")

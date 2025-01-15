@@ -54,7 +54,7 @@ func (s *SerfDiscoverer) run(ctx context.Context, ch chan serf.Event, tickDelay 
 		case <-after:
 			s.agent.Node.Address = s.serf.LocalMember().Addr.String()
 			marshal, err := proto.Marshal(s.agent)
-			s.logger.WithField("module", moduleLog).Info("sending agent_info info")
+			s.logger.WithField("module", moduleLog).Debug("sending agent_info info")
 			if err != nil {
 				s.logger.WithError(err).Error("failed to marshal agent_info info")
 				return
@@ -90,7 +90,7 @@ func (s *SerfDiscoverer) run(ctx context.Context, ch chan serf.Event, tickDelay 
 						"module":   moduleLog,
 						"agent_id": agent.Id,
 						"address":  agentsNode.Node.Address,
-					}).Info("discovered a new llm")
+					}).Debug("discovered a new llm")
 
 					err = s.store.Store(agent, agentsNode.Node)
 					if err != nil {

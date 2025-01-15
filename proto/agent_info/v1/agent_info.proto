@@ -22,13 +22,15 @@ message AgentInfo {
 
   repeated Capability capabilities = 2;
 
-  repeated Tool tools = 3;
+  bool isDispatcher = 3;
 
-  string id = 4;
+  repeated Tool tools = 4;
 
-  float cost = 5;
+  string id = 5;
 
-  float score = 6;
+  float cost = 6;
+
+  float score = 7;
 }
 
 message Capability{
