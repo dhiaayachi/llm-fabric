@@ -16,8 +16,8 @@ type CapabilityDispatcher struct {
 }
 type Agent struct {
 	Id           string                  `json:"id"`
-	Capabilities []*agentinfo.Capability `json:"capabilities"`
-	Tools        []*agentinfo.Tool       `json:"tools"`
+	Capabilities []*agentinfo.Capability `json:"capabilities,omitempty"`
+	Tools        []*agentinfo.Tool       `json:"tools,omitempty"`
 }
 
 type AgentNode struct {
