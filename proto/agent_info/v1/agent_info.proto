@@ -4,11 +4,11 @@ package agent_info.v1;
 
 option go_package = "github.com/dhiaayachi/llm-fabric/proto/gen/agent_info";
 message NodeInfo {
-
+  string id = 1;
   // port is the port assigned to the workload
-  string address = 1;
+  string address = 2;
 
-  int32 port = 2;
+  int32 port = 3;
 }
 
 message AgentsNodeInfo{
@@ -17,37 +17,26 @@ message AgentsNodeInfo{
 }
 
 message AgentInfo {
-  // description opaque description
-  string description = 1;
+  string id = 1;
 
-  repeated Capability capabilities = 2;
+  string description = 2;
 
-  bool isDispatcher = 3;
+  repeated Capability capabilities = 3;
 
-  repeated Tool tools = 4;
+  bool is_dispatcher = 4;
 
-  string id = 5;
+  repeated Tool tools = 5;
 
   float cost = 6;
-
-  float score = 7;
 }
 
 message Capability{
-  string id = 1;
-  string description = 2;
-}
-
-enum ToolType{
-  TOOL_TYPE_UNSPECIFIED = 0;
-  TOOL_TYPE_RAG = 1;
-  TOOL_TYPE_FUNCTION = 2;
+  string description = 1;
 }
 
 message Tool {
   string name = 1;
   string description = 2;
-  ToolType type = 3;
 }
 
 

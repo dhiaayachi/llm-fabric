@@ -37,7 +37,7 @@ func main() {
 			{
 				Description: "Ollama agent_info",
 				Capabilities: []*agentinfo.Capability{
-					{Id: "4", Description: "capability based tasks dispatcher"},
+					{Description: "capability based tasks dispatcher"},
 				},
 				IsDispatcher: true,
 				Tools:        make([]*agentinfo.Tool, 0),

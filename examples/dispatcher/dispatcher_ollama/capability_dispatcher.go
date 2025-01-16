@@ -17,6 +17,7 @@ type CapabilityDispatcher struct {
 type Agent struct {
 	Id           string                  `json:"id"`
 	Capabilities []*agentinfo.Capability `json:"capabilities"`
+	Tools        []*agentinfo.Tool       `json:"tools"`
 }
 
 type AgentNode struct {
@@ -30,7 +31,7 @@ func availableAgents(agentsNodes []*agentinfo.AgentsNodeInfo) map[string]*AgentN
 	res := make(map[string]*AgentNode)
 	for _, agentN := range agentsNodes {
 		for _, a := range agentN.Agents {
-			res[a.Id] = &AgentNode{AgentDesc: Agent{Id: a.Id, Capabilities: a.Capabilities}, node: agentN.Node, agent: a}
+			res[a.Id] = &AgentNode{AgentDesc: Agent{Id: a.Id, Capabilities: a.Capabilities, Tools: a.Tools}, node: agentN.Node, agent: a}
 		}
 	}
 	return res
@@ -38,7 +39,7 @@ func availableAgents(agentsNodes []*agentinfo.AgentsNodeInfo) map[string]*AgentN
 
 func (d *CapabilityDispatcher) Execute(task string, agentsNodes []*agentinfo.AgentsNodeInfo, localLLM llm.Llm) []*strategy.TaskAgent {
 	agents := availableAgents(agentsNodes)
-	prompt := "select the best agent to answer the following task based on its capabilities:\\n\\n"
+	prompt := "select the best agents (1 to 3 agents) to answer the following task based on its capabilities and available tools:\\n\\n"
 	prompt = prompt + fmt.Sprintf("%s\\n\\n", task)
 	prompt = prompt + "the available agents are:\\n"
 	marchal, err := json.Marshal(agents)
