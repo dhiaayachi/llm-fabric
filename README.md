@@ -10,7 +10,6 @@ and allows easy addition of new providers.
 
 - **Multi-LLM Support**: Unified interface for multiple LLM providers (e.g., OpenAI, Ollama, Anthropic).
 - **Extensible Interface**: Easily add new LLM providers, discoverer, strategy...
-- **gRPC API**: Expose LLM capabilities through a gRPC service.
 - **Configurable**: Customizable capabilities, tools.
 
 ## Usage
@@ -41,18 +40,23 @@ Set up environment variables to configure API keys for different providers:
 - `OPENAI_API_KEY`
 - `ANTHROPIC_API_KEY`
 
-
-
 ## Implementation
 
 llm-fabric is a framework composed of multiple components. Most components are wrapped in an interface to allow 
 multiple implementations and extensibility.
 
+### Components
+
 #### Fabric
 
-This is the core component that instantiate a new fabric and which depends on all the other components.
+This is the core component that would instantiate a new fabric. It include an `Agent` or a `Client`. 
 
-#### LLM
+- The `Agent`purpose is to present an Llm to the Fabric and allow it to be available to solve tasks. 
+A special type of agents are `Dispatchers`, they allow to dispatch tasks to other agents using `Strategies`.
+- The `Client` purpose is to allow an application to discover agents and will forward any task submitted by 
+the application to a dispatcher agent to dispatch it to a capable agent to solve it.
+
+#### Llm
 
 This is a thin wrapper around a given llm API and provide a common API to interact with those LLMs. 
 It's implemented for `GPT`, `Ollama`, `Anthropic` for the time being.
@@ -69,6 +73,11 @@ the [dicoverer interface](https://github.com/dhiaayachi/llm-fabric/blob/main/dis
 
 This is responsible for implementing the communication interface between all the agents (using gRPC) and 
 allow agents to instantiate gRPC servers and clients 
+
+#### Strategy
+
+A strategy is the logic that a `Dispatcher` agent will use to dispatch a task to agents to solve it.
+A strategy example would be to [Select the most capable agent with the least cost](https://github.com/dhiaayachi/llm-fabric/blob/main/examples/dispatcher/dispatcher_ollama/capability_dispatcher.go#L81-L81).
 
 ### Running Unit Tests
 
