@@ -46,7 +46,7 @@ func (a Agent) SubmitTask(ctx context.Context, task string, opts []*llmoptions.L
 
 		rsps := make([]string, 0)
 		for _, taskAgent := range taskAgents {
-			client, err := grpc.GetClient(taskAgent.Node.Address, taskAgent.Node.Port)
+			client, err := grpc.MakeClient(taskAgent.Node.Address, taskAgent.Node.Port)
 			if err != nil {
 				return "", err
 			}

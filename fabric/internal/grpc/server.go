@@ -73,30 +73,3 @@ func (srv *Server) Start(ctx context.Context) {
 		}
 	}()
 }
-
-func (srv *Server) submitTask(ctx context.Context, task string, opts []*llmoptions.LlmOpt) (string, error) {
-	strategies := srv.agent.GetStrategies()
-	if len(strategies) > 0 {
-		taskAgents := strategies[0].Execute(task, srv.agent.GetAgents(), srv.agent.GetLocalLlm())
-
-		rsps := make([]string, 0)
-		for _, taskAgent := range taskAgents {
-			client, err := GetClient(taskAgent.Node.Address, taskAgent.Node.Port)
-			if err != nil {
-				return "", err
-			}
-			response, err := client.SubmitTask(ctx, &agent_external.SubmitTaskRequest{Task: taskAgent.Task, Opts: opts})
-			if err != nil {
-				return "", err
-			}
-			rsps = append(rsps, response.Response)
-		}
-		return strategies[0].Finalize(rsps, srv.agent.GetLocalLlm()), nil
-	} else {
-		response, err := srv.agent.GetLocalLlm().SubmitTask(ctx, task, opts...)
-		if err != nil {
-			return "", err
-		}
-		return response, nil
-	}
-}

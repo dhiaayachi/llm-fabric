@@ -37,7 +37,7 @@ func (c Client) SubmitTask(ctx context.Context, task string) (string, error) {
 		return "", errors.New("no dispatchers found")
 	}
 
-	client, err := grpc.GetClient(dispatchers[0].Node.Address, dispatchers[0].Node.Port)
+	client, err := grpc.MakeClient(dispatchers[0].Node.Address, dispatchers[0].Node.Port)
 	if err != nil {
 		return "", err
 	}
