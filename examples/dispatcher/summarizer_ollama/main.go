@@ -39,8 +39,8 @@ func main() {
 			{
 				Description: "Ollama agent_info",
 				Capabilities: []*agentinfo.Capability{
-					{Id: "1", Description: "text summarization"},
-					{Id: "3", Description: "text generation"},
+					{Description: "text summarization"},
+					{Description: "text generation"},
 				},
 				Tools: make([]*agentinfo.Tool, 0),
 				Id:    ulid.Make().String(),

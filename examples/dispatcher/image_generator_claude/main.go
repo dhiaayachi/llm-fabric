@@ -37,7 +37,7 @@ func main() {
 			{
 				Description: "Claude agent_info",
 				Capabilities: []*agentinfo.Capability{
-					{Id: "4", Description: "image generation"},
+					{Description: "image generation"},
 				},
 				Tools: make([]*agentinfo.Tool, 0),
 				Id:    ulid.Make().String(),
