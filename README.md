@@ -1,5 +1,6 @@
 ![llmfabric workflow](https://github.com/dhiaayachi/llm-fabric/actions/workflows/build.yaml/badge.svg)
-# llm-fabric
+
+![alt text](https://github.com/dhiaayachi/llm-fabric/blob/main/fabric.png?raw=true)
 
 `llm-fabric` is a Go-based framework designed to allow multiple AI agents to cooperate to solve problems using a
 provided strategy it also provide a unified interface for AI tasks submission and an agent discovery module. 
