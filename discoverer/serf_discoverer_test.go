@@ -293,3 +293,24 @@ func TestGetAgents_Success(t *testing.T) {
 
 	assert.Equal(t, agentsExpected, agents)
 }
+
+func TestGetDispatchers_Success(t *testing.T) {
+	logger := setupLogger()
+	mockStore := new(MockStore)
+	discoverer := &SerfDiscoverer{
+		serf:   nil,
+		evtCh:  make(chan serf.Event, 1),
+		store:  mockStore,
+		logger: logger,
+	}
+	agentsExpected := []*agentinfo.AgentsNodeInfo{{Node: &agentinfo.NodeInfo{Address: "127.0.0.1"},
+		Agents: []*agentinfo.AgentInfo{
+			{Id: "1", Description: "agent_info 1", IsDispatcher: true},
+			{Id: "2", Description: "agent_info 2"},
+		}}}
+	mockStore.On("GetAll").Return(agentsExpected)
+
+	agents := discoverer.GetDispatchers()
+
+	assert.Equal(t, agentsExpected, agents[0:1])
+}

@@ -48,9 +48,9 @@ func TestGetClient(t *testing.T) {
 
 	portNum, err := strconv.Atoi(u[1])
 	require.NoError(t, err)
-	// Get a client using the GetClient function
-	client, err := grpc2.GetClient(u[0], int32(portNum))
-	require.NoError(t, err, "GetClient failed")
+	// Get a client using the MakeClient function
+	client, err := grpc2.MakeClient(u[0], int32(portNum))
+	require.NoError(t, err, "MakeClient failed")
 	require.NotNil(t, client, "client should not be nil")
 
 	// Test the Close function
@@ -60,7 +60,7 @@ func TestGetClient(t *testing.T) {
 
 func TestGetClient_InvalidAddress(t *testing.T) {
 	// Try to connect to an invalid address
-	client, err := grpc2.GetClient("%%%invalid/", 333)
-	require.Error(t, err, "GetClient should return an error")
+	client, err := grpc2.MakeClient("%%%invalid/", 333)
+	require.Error(t, err, "MakeClient should return an error")
 	require.Nil(t, client, "client should be nil")
 }

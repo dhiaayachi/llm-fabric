@@ -7,7 +7,7 @@ import (
 	"google.golang.org/grpc/credentials/insecure"
 )
 
-func GetClient(host string, port int32) (*Client, error) {
+func MakeClient(host string, port int32) (*Client, error) {
 	addr := fmt.Sprintf("%s:%d", host, port)
 	// Dial a connection to the buffer connection
 	conn, err := grpc.NewClient(addr, grpc.WithTransportCredentials(insecure.NewCredentials()))

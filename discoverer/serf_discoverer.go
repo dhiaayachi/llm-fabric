@@ -31,6 +31,17 @@ func (s *SerfDiscoverer) GetAgents() []*agentinfo.AgentsNodeInfo {
 	return s.store.GetAll()
 }
 
+func (s *SerfDiscoverer) GetDispatchers() []*agentinfo.AgentsNodeInfo {
+	agents := s.store.GetAll()
+	dispatchers := make([]*agentinfo.AgentsNodeInfo, 0)
+	for _, agent := range agents {
+		if agent.Agents[0].IsDispatcher {
+			dispatchers = append(dispatchers, agent)
+		}
+	}
+	return dispatchers
+}
+
 func (s *SerfDiscoverer) Join(ctx context.Context, addresses []string, agent *agentinfo.AgentsNodeInfo) error {
 	_, err := s.serf.Join(addresses, true)
 	if err != nil {

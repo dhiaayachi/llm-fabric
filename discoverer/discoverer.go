@@ -9,4 +9,5 @@ import (
 type Discoverer interface {
 	Join(ctx context.Context, addresses []string, agent *agentinfo.AgentsNodeInfo) error
 	GetAgents() []*agentinfo.AgentsNodeInfo
+	GetDispatchers() []*agentinfo.AgentsNodeInfo
 }
