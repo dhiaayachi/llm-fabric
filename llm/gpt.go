@@ -17,7 +17,8 @@ type GPT struct {
 }
 
 func (c *GPT) SubmitTaskWithSchema(ctx context.Context, task string, schema string) (response string, err error) {
-
+	//TODO implement me
+	panic("implement me")
 }
 
 var _ Llm = &GPT{}
