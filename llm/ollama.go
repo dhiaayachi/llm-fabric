@@ -17,6 +17,11 @@ type OllamaClient struct {
 	url    string
 }
 
+func (c *OllamaClient) SubmitTaskWithSchema(ctx context.Context, task string, schema string) (response string, err error) {
+	//TODO implement me
+	panic("implement me")
+}
+
 var _ Llm = &OllamaClient{}
 
 // SubmitTask sends a task (prompt) to the Ollama API and returns all responses as a concatenated string.

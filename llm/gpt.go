@@ -16,6 +16,10 @@ type GPT struct {
 	role   string
 }
 
+func (c *GPT) SubmitTaskWithSchema(ctx context.Context, task string, schema string) (response string, err error) {
+
+}
+
 var _ Llm = &GPT{}
 
 // SubmitTask sends a task (prompt) to the OpenAI ChatGPT API and returns all responses as a slice of strings.
