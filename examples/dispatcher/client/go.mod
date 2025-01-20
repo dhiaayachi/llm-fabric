@@ -7,7 +7,6 @@ replace github.com/dhiaayachi/llm-fabric => ../../../
 require (
 	github.com/dhiaayachi/llm-fabric v0.0.0-20241108153855-d6845d5ca3e0
 	github.com/hashicorp/serf v0.10.1
-	github.com/oklog/ulid/v2 v2.1.0
 	github.com/sirupsen/logrus v1.9.3
 )
 
@@ -29,6 +28,9 @@ require (
 	github.com/pkoukk/tiktoken-go v0.1.6 // indirect
 	github.com/sashabaranov/go-openai v1.35.6 // indirect
 	github.com/sean-/seed v0.0.0-20170313163322-e2103e2c3529 // indirect
+	github.com/tidwall/gjson v1.14.4 // indirect
+	github.com/tidwall/match v1.1.1 // indirect
+	github.com/tidwall/pretty v1.2.0 // indirect
 	github.com/tmc/langchaingo v0.1.12 // indirect
 	golang.org/x/net v0.28.0 // indirect
 	golang.org/x/sys v0.24.0 // indirect

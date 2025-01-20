@@ -32,6 +32,13 @@ func (c *GPT) SubmitTaskWithSchema(ctx context.Context, task string, schema stri
 		logger.WithError(err).Error("failed to generate schema")
 		return "", err
 	}
+	json, err := def.MarshalJSON()
+	if err != nil {
+		logger.WithError(err).Error("failed to marshal schema")
+		return "", err
+	}
+	c.logger.WithField("schema", json).Info("Submitting task to ChatGPT")
+
 	var rspFormat *openai.ChatCompletionResponseFormat
 	if schema != "" {
 		rspFormat = &openai.ChatCompletionResponseFormat{
