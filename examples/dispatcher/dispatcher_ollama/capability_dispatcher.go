@@ -4,15 +4,15 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/dhiaayachi/llm-fabric/llm"
 	agentinfo "github.com/dhiaayachi/llm-fabric/proto/gen/agent_info/v1"
-	llmoptions "github.com/dhiaayachi/llm-fabric/proto/gen/llm_options/v1"
 	"github.com/dhiaayachi/llm-fabric/strategy"
 	"github.com/sirupsen/logrus"
 )
 
 type CapabilityDispatcher struct {
-	logger *logrus.Logger
+	logger    *logrus.Logger
+	MinAgents int
+	MaxAgents int
 }
 type Agent struct {
 	Id           string                  `json:"id"`
@@ -37,9 +37,9 @@ func availableAgents(agentsNodes []*agentinfo.AgentsNodeInfo) map[string]*AgentN
 	return res
 }
 
-func (d *CapabilityDispatcher) Execute(task string, agentsNodes []*agentinfo.AgentsNodeInfo, localLLM llm.Llm) []*strategy.TaskAgent {
+func (d *CapabilityDispatcher) Execute(task string, agentsNodes []*agentinfo.AgentsNodeInfo, localLLM strategy.LocalLLM) []*strategy.TaskAgent {
 	agents := availableAgents(agentsNodes)
-	prompt := "select the best agents (1 to 3 agents) to answer the following task based on its capabilities and available tools:\\n\\n"
+	prompt := fmt.Sprintf("select the best agents (%d to %d agents) to answer the following task based on its capabilities and available tools:\\n\\n", d.MinAgents, d.MaxAgents)
 	prompt = prompt + fmt.Sprintf("%s\\n\\n", task)
 	prompt = prompt + "the available agents are:\\n"
 	marchal, err := json.Marshal(agents)
@@ -48,7 +48,6 @@ func (d *CapabilityDispatcher) Execute(task string, agentsNodes []*agentinfo.Age
 	}
 	prompt = prompt + fmt.Sprintf("%s\\n\\n", marchal)
 
-	o := &llmoptions.LlmOpt{Typ: llmoptions.LlmOptType_LLM_OPT_TYPE_OLLAMA_RESPONSE_SCHEMA}
 	type result struct {
 		Agents []struct {
 			Id string `json:"id"`
@@ -63,17 +62,7 @@ func (d *CapabilityDispatcher) Execute(task string, agentsNodes []*agentinfo.Age
 		},
 	}
 
-	schema, err := json.Marshal(v)
-	if err != nil {
-		d.logger.Fatal(err)
-		return nil
-	}
-
-	err = llm.FromVal[string](o, string(schema))
-	if err != nil {
-		d.logger.Fatal(err)
-	}
-	response, err := localLLM.SubmitTask(context.Background(), prompt, o)
+	response, err := localLLM.SubmitTask(context.Background(), prompt, v)
 	if err != nil {
 		d.logger.Fatal(err)
 	}
@@ -106,7 +95,7 @@ func (d *CapabilityDispatcher) Execute(task string, agentsNodes []*agentinfo.Age
 	return []*strategy.TaskAgent{{Agent: selectedAgent.agent, Task: task, Node: selectedAgent.node}}
 }
 
-func (d *CapabilityDispatcher) Finalize(responses []string, _ llm.Llm) string {
+func (d *CapabilityDispatcher) Finalize(responses []string, _ strategy.LocalLLM) string {
 	r := ""
 	for _, response := range responses {
 		r += response

@@ -2,8 +2,8 @@ package llm
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
-	llmoptions "github.com/dhiaayachi/llm-fabric/proto/gen/llm_options/v1"
 	"github.com/sirupsen/logrus"
 	"github.com/tmc/langchaingo/llms"
 	"github.com/tmc/langchaingo/llms/ollama"
@@ -20,13 +20,22 @@ type OllamaClient struct {
 var _ Llm = &OllamaClient{}
 
 // SubmitTask sends a task (prompt) to the Ollama API and returns all responses as a concatenated string.
-func (c *OllamaClient) SubmitTask(ctx context.Context, task string, opts ...*llmoptions.LlmOpt) (string, error) {
+func (c *OllamaClient) SubmitTask(ctx context.Context, task string, schema any) (string, error) {
 	logger := c.logger.WithFields(logrus.Fields{
 		"task": task,
 	})
 	logger.Info("Submitting task to Ollama")
 
-	schema := getOpt[string](llmoptions.LlmOptType_LLM_OPT_TYPE_OLLAMA_RESPONSE_SCHEMA, opts...)
+	var schemaBytes []byte
+	if schema != nil {
+		c.logger.Infof("Schema: %s", schema)
+		var err error
+		schemaBytes, err = json.Marshal(schema)
+		if err != nil {
+			c.logger.Fatal(err)
+			return "", nil
+		}
+	}
 
 	var llmOpts []ollama.Option
 	if c.url != "" {
@@ -35,7 +44,7 @@ func (c *OllamaClient) SubmitTask(ctx context.Context, task string, opts ...*llm
 
 	}
 
-	if schema != "" {
+	if len(schemaBytes) != 0 {
 		llmOpts = append(llmOpts, ollama.WithFormat("json"))
 	}
 
@@ -51,8 +60,8 @@ func (c *OllamaClient) SubmitTask(ctx context.Context, task string, opts ...*llm
 	}
 
 	var msgs []llms.MessageContent
-	if schema != "" {
-		message, err := systemMessage(schema)
+	if schema != nil {
+		message, err := systemMessage(string(schemaBytes))
 		if err != nil {
 			logger.WithError(err).Error("Failed to submit task to Ollama")
 			return "", fmt.Errorf("failed to submit task to Ollama: %w", err)

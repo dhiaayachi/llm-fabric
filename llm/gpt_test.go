@@ -13,7 +13,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-// TestSubmitTask_Success tests SubmitTask method for a successful response with multiple choices.
+// TestSubmitTask_Success tests DispatchTask method for a successful response with multiple choices.
 func TestSubmitTask_Success(t *testing.T) {
 	// Create a test server that returns a successful response with multiple choices.
 	handler := func(w http.ResponseWriter, r *http.Request) {
@@ -43,13 +43,13 @@ func TestSubmitTask_Success(t *testing.T) {
 	// Create GPT instance
 	gpt := NewGPT(clientConfig, logger, "gpt-3.5-turbo", "user")
 
-	// Call SubmitTask and assert the response
-	responses, err := gpt.SubmitTask(context.Background(), "Test prompt")
+	// Call DispatchTask and assert the response
+	responses, err := gpt.SubmitTask(context.Background(), "Test prompt", "")
 	assert.NoError(t, err)
 	assert.Equal(t, "Response 1Response 2", responses)
 }
 
-// TestSubmitTask_NoChoices tests the SubmitTask method when no choices are returned.
+// TestSubmitTask_NoChoices tests the DispatchTask method when no choices are returned.
 func TestSubmitTask_NoChoices(t *testing.T) {
 	// Create a test server that returns an empty choices response
 	handler := func(w http.ResponseWriter, r *http.Request) {
@@ -74,14 +74,14 @@ func TestSubmitTask_NoChoices(t *testing.T) {
 
 	gpt := NewGPT(clientConfig, logger, "gpt-3.5-turbo", "user")
 
-	// Call SubmitTask and assert an error is returned
-	responses, err := gpt.SubmitTask(context.Background(), "Test prompt")
+	// Call DispatchTask and assert an error is returned
+	responses, err := gpt.SubmitTask(context.Background(), "Test prompt", "")
 	assert.Error(t, err)
 	assert.Empty(t, responses)
 	assert.Contains(t, err.Error(), "no response from ChatGPT")
 }
 
-// TestSubmitTask_ErrorFromAPI tests SubmitTask when the API returns an error.
+// TestSubmitTask_ErrorFromAPI tests DispatchTask when the API returns an error.
 func TestSubmitTask_ErrorFromAPI(t *testing.T) {
 	// Create a test server that returns a server error
 	handler := func(w http.ResponseWriter, r *http.Request) {
@@ -101,8 +101,8 @@ func TestSubmitTask_ErrorFromAPI(t *testing.T) {
 
 	gpt := NewGPT(clientConfig, logger, "gpt-3.5-turbo", "user")
 
-	// Call SubmitTask and assert an error is returned
-	responses, err := gpt.SubmitTask(context.Background(), "Test prompt")
+	// Call DispatchTask and assert an error is returned
+	responses, err := gpt.SubmitTask(context.Background(), "Test prompt", "")
 	assert.Error(t, err)
 	assert.Empty(t, responses)
 	assert.Contains(t, err.Error(), "failed to submit task to ChatGPT")

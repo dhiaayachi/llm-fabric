@@ -29,8 +29,8 @@ func TestClaudeClient_SubmitTask_Success(t *testing.T) {
 		c.BaseURL = server.URL
 	})
 
-	// Call SubmitTask and validate
-	response, err := client.SubmitTask(context.Background(), "Hello, Claude!")
+	// Call DispatchTask and validate
+	response, err := client.SubmitTask(context.Background(), "Hello, Claude!", "")
 	assert.NoError(t, err)
 	assert.Equal(t, "This is a test response from Claude.", response)
 }
@@ -48,8 +48,8 @@ func TestClaudeClient_SubmitTask_Error(t *testing.T) {
 		c.BaseURL = server.URL
 	})
 
-	// Call SubmitTask and expect an error
-	response, err := client.SubmitTask(context.Background(), "Hello, Claude!")
+	// Call DispatchTask and expect an error
+	response, err := client.SubmitTask(context.Background(), "Hello, Claude!", "")
 	assert.Error(t, err)
 	assert.Empty(t, response)
 	assert.Contains(t, err.Error(), "failed to submit task to Claude")
