@@ -18,7 +18,7 @@ func NewClient(discoverer discoverer.Discoverer, logger *logrus.Logger) *Client 
 	return &Client{discoverer: discoverer, logger: logger}
 }
 
-func (c Client) SubmitTask(ctx context.Context, task string) (string, error) {
+func (c Client) DispatchTask(ctx context.Context, task string) (string, error) {
 
 	dispatchers := c.discoverer.GetDispatchers()
 
@@ -32,7 +32,7 @@ func (c Client) SubmitTask(ctx context.Context, task string) (string, error) {
 		return "", err
 	}
 
-	response, err := client.SubmitTask(ctx, &agent_external.SubmitTaskRequest{Task: task})
+	response, err := client.DispatchTask(ctx, &agent_external.DispatchTaskRequest{Task: task})
 	if err != nil {
 		return "", err
 	}

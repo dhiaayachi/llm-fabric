@@ -5,10 +5,10 @@ import (
 	"errors"
 	"fmt"
 	"github.com/dhiaayachi/llm-fabric/proto/gen/agent_external/v1"
-	llmoptions "github.com/dhiaayachi/llm-fabric/proto/gen/llm_options/v1"
 	"github.com/dhiaayachi/llm-fabric/strategy"
 	"github.com/sirupsen/logrus"
 	"google.golang.org/grpc/credentials/insecure"
+	"google.golang.org/protobuf/types/known/anypb"
 	"testing"
 
 	"github.com/dhiaayachi/llm-fabric/llm"
@@ -23,8 +23,13 @@ type agentMock struct {
 	mock.Mock
 }
 
-func (a *agentMock) SubmitTask(ctx context.Context, task string, opts []*llmoptions.LlmOpt) (string, error) {
-	args := a.Called(ctx, task, opts)
+func (a *agentMock) SubmitTask(ctx context.Context, task string, schema *anypb.Any) (string, error) {
+	args := a.Called(ctx, task, schema)
+	return args.Get(0).(string), args.Error(1)
+}
+
+func (a *agentMock) DispatchTask(ctx context.Context, task string, schema any) (string, error) {
+	args := a.Called(ctx, task, schema)
 	return args.Get(0).(string), args.Error(1)
 }
 
@@ -81,7 +86,7 @@ func TestSubmitTask_Success(t *testing.T) {
 	// Create the gRPC client
 	client := agent_external.NewAgentServiceClient(conn)
 
-	// Call SubmitTask
+	// Call DispatchTask
 	req := &agent_external.SubmitTaskRequest{Task: task}
 	resp, err := client.SubmitTask(context.Background(), req)
 
@@ -107,7 +112,7 @@ func TestSubmitTask_Error(t *testing.T) {
 	// Create the gRPC client
 	client := agent_external.NewAgentServiceClient(conn)
 
-	// Call SubmitTask and expect an error
+	// Call DispatchTask and expect an error
 	req := &agent_external.SubmitTaskRequest{Task: task}
 	resp, err := client.SubmitTask(context.Background(), req)
 

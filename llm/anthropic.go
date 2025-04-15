@@ -3,8 +3,6 @@ package llm
 import (
 	"context"
 	"fmt"
-	llmoptions "github.com/dhiaayachi/llm-fabric/proto/gen/llm_options/v1"
-
 	"github.com/liushuangls/go-anthropic"
 	"github.com/sirupsen/logrus"
 )
@@ -30,7 +28,7 @@ func NewClaudeClient(apiKey string, logger *logrus.Logger, model string) *Claude
 }
 
 // SubmitTask sends a task (prompt) to the Claude API and returns the response.
-func (c *ClaudeClient) SubmitTask(ctx context.Context, task string, _ ...*llmoptions.LlmOpt) (string, error) {
+func (c *ClaudeClient) SubmitTask(ctx context.Context, task string, _ any) (string, error) {
 	c.logger.WithFields(logrus.Fields{
 		"task": task,
 	}).Info("Submitting task to Claude")

@@ -64,7 +64,7 @@ func main() {
 	// Create fabric
 	c := fabric.NewClient(dicso, logger)
 	logger.Info("sending request to dispatch!")
-	response, err := c.SubmitTask(context.Background(), "Can you summarize this text?: Johannes Gutenberg (1398 – 1468) "+
+	response, err := c.DispatchTask(context.Background(), "Can you summarize this text?: Johannes Gutenberg (1398 – 1468) "+
 		"was a German goldsmith and publisher who introduced printing to Europe. His introduction of mechanical "+
 		"movable type printing to Europe started the Printing Revolution and is widely regarded as the most important "+
 		"event of the modern period. It played a key role in the scientific revolution and laid the basis for the "+

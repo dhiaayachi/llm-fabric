@@ -49,7 +49,7 @@ func TestSubmitTask_Success(t *testing.T) {
 	marsh, err := json.Marshal(TestResponse)
 	require.NoError(t, err)
 
-	// Call SubmitTask
+	// Call DispatchTask
 	o := &llmoptions.LlmOpt{Typ: llmoptions.LlmOptType_LLM_OPT_TYPE_OLLAMA_RESPONSE_SCHEMA}
 	err = llm.FromVal[string](o, string(marsh))
 	require.NoError(t, err)
@@ -70,7 +70,7 @@ func TestSubmitTask_Error(t *testing.T) {
 
 	ollamaClient := llm.NewOllama(server.URL, logger, "test-model", "user")
 
-	// Call SubmitTask and expect an error
+	// Call DispatchTask and expect an error
 	o := &llmoptions.LlmOpt{Typ: llmoptions.LlmOptType_LLM_OPT_TYPE_OLLAMA_RESPONSE_SCHEMA}
 	err := llm.FromVal(o, "json")
 	require.NoError(t, err)

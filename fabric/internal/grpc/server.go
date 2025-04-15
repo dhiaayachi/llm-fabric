@@ -5,19 +5,20 @@ import (
 	"github.com/dhiaayachi/llm-fabric/llm"
 	"github.com/dhiaayachi/llm-fabric/proto/gen/agent_external/v1"
 	agentinfo "github.com/dhiaayachi/llm-fabric/proto/gen/agent_info/v1"
-	llmoptions "github.com/dhiaayachi/llm-fabric/proto/gen/llm_options/v1"
 	"github.com/dhiaayachi/llm-fabric/strategy"
 	"github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
+	"google.golang.org/protobuf/types/known/anypb"
 	"net"
 	"time"
 )
 
 type agent interface {
-	SubmitTask(ctx context.Context, task string, opts []*llmoptions.LlmOpt) (string, error)
+	DispatchTask(ctx context.Context, task string, schema any) (string, error)
 	GetStrategies() []strategy.Strategy
 	GetAgents() []*agentinfo.AgentsNodeInfo
 	GetLocalLlm() llm.Llm
+	SubmitTask(ctx context.Context, task string, schema *anypb.Any) (string, error)
 }
 
 type Server struct {
@@ -36,7 +37,17 @@ type Config struct {
 
 func (srv *Server) SubmitTask(ctx context.Context, request *agent_external.SubmitTaskRequest) (*agent_external.SubmitTaskResponse, error) {
 	resp := &agent_external.SubmitTaskResponse{}
-	response, err := srv.agent.SubmitTask(ctx, request.Task, request.Opts)
+	response, err := srv.agent.SubmitTask(ctx, request.Task, request.Schema)
+	if err != nil {
+		return nil, err
+	}
+	resp.Response = response
+	return resp, nil
+}
+
+func (srv *Server) DispatchTask(ctx context.Context, request *agent_external.DispatchTaskRequest) (*agent_external.DispatchTaskResponse, error) {
+	resp := &agent_external.DispatchTaskResponse{}
+	response, err := srv.agent.DispatchTask(ctx, request.Task, request.Schema)
 	if err != nil {
 		return nil, err
 	}

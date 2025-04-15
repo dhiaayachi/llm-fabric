@@ -144,8 +144,7 @@ type AgentInfo struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	Id string `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	// description opaque description
+	Id           string        `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
 	Description  string        `protobuf:"bytes,2,opt,name=description,proto3" json:"description,omitempty"`
 	Capabilities []*Capability `protobuf:"bytes,3,rep,name=capabilities,proto3" json:"capabilities,omitempty"`
 	IsDispatcher bool          `protobuf:"varint,4,opt,name=is_dispatcher,json=isDispatcher,proto3" json:"is_dispatcher,omitempty"`

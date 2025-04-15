@@ -11,7 +11,10 @@ import (
 
 type Llm interface {
 	// SubmitTask TODO: task need to be changed to proto eventually
-	SubmitTask(ctx context.Context, task string, opts ...*llmoptions.LlmOpt) (response string, err error)
+	SubmitTask(ctx context.Context, task string, schema any) (response string, err error)
+}
+
+type Submitter struct {
 }
 
 func getOpt[T any](typ llmoptions.LlmOptType, opts ...*llmoptions.LlmOpt) T {

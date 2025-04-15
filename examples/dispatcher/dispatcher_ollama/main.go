@@ -86,7 +86,7 @@ func main() {
 	l := llm.NewOllama(parse.String(), logger, "llama3.2", "dispatcher")
 
 	// Create fabric
-	_ = fabric.NewAgent(ctx, dicso, []strategy.Strategy{&CapabilityDispatcher{logger: logger}}, l, logger, grpcPort)
+	_ = fabric.NewAgent(ctx, dicso, []strategy.Strategy{&CapabilityDispatcher{logger: logger, MinAgents: 1, MaxAgents: 3}}, l, logger, grpcPort)
 
 	select {
 	case <-ctx.Done():
