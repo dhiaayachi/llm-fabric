@@ -91,9 +91,14 @@ func (d *CapabilityDispatcher) Execute(task string, agentsNodes []*agentinfo.Age
 	leastCost := selectedAgent.agent.Cost
 
 	for _, agent := range res.Agents {
-		if leastCost > agents[agent.Id].agent.Cost {
-			leastCost = agents[agent.Id].agent.Cost
-			selectedAgent = agents[agent.Id]
+		a, ok := agents[agent.Id]
+		if !ok {
+			d.logger.WithField("agent", agent).Warn("agent not found")
+			continue
+		}
+		if leastCost > a.agent.Cost {
+			leastCost = a.agent.Cost
+			selectedAgent = a
 		}
 	}
 	d.logger.WithField("selectedAgent", selectedAgent).Info("selected agent")
