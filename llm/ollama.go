@@ -17,6 +17,59 @@ type OllamaClient struct {
 	url    string
 }
 
+func (c *OllamaClient) SubmitTaskWithSchema(ctx context.Context, task string, schema string) (response string, err error) {
+	logger := c.logger.WithFields(logrus.Fields{
+		"task": task,
+	})
+	logger.Info("Submitting task to Ollama")
+
+	var llmOpts []ollama.Option
+	if c.url != "" {
+		urlOpts := ollama.WithServerURL(c.url)
+		llmOpts = append(llmOpts, urlOpts)
+
+	}
+
+	if schema != "" {
+		llmOpts = append(llmOpts, ollama.WithFormat("json"))
+	}
+
+	if c.model != "" {
+		llmOpts = append(llmOpts, ollama.WithModel(c.model))
+	}
+
+	logger.WithField("schema", schema).WithField("model", c.model).WithField("url", c.url).Info("Submitting task to Ollama With the following options")
+	o, err := ollama.New(llmOpts...)
+	if err != nil {
+		logger.WithError(err).Error("Failed to submit task to Ollama")
+		return "", err
+	}
+
+	var msgs []llms.MessageContent
+	if schema != "" {
+		message, err := systemMessage(schema)
+		if err != nil {
+			logger.WithError(err).Error("Failed to submit task to Ollama")
+			return "", fmt.Errorf("failed to submit task to Ollama: %w", err)
+		}
+		msgs = append(msgs, llms.TextParts(llms.ChatMessageTypeSystem, message))
+	}
+	msgs = append(msgs, llms.TextParts(llms.ChatMessageTypeHuman, task))
+
+	// Send request using langchain Ollama client
+	resp, err := o.GenerateContent(ctx, msgs)
+	if err != nil {
+		logger.WithError(err).Error("Failed to submit task to Ollama")
+		return "", fmt.Errorf("failed to submit task to Ollama: %w", err)
+	}
+
+	logger.WithFields(logrus.Fields{
+		"content": resp,
+	}).Info("Received response from Ollama")
+
+	return resp.Choices[0].Content, nil
+}
+
 var _ Llm = &OllamaClient{}
 
 // SubmitTask sends a task (prompt) to the Ollama API and returns all responses as a concatenated string.

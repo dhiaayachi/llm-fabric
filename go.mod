@@ -8,6 +8,7 @@ require (
 	github.com/sashabaranov/go-openai v1.35.6
 	github.com/sirupsen/logrus v1.9.3
 	github.com/stretchr/testify v1.9.0
+	github.com/tidwall/gjson v1.14.4
 	github.com/tmc/langchaingo v0.1.12
 	google.golang.org/grpc v1.67.1
 	google.golang.org/protobuf v1.35.1
@@ -31,6 +32,8 @@ require (
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/sean-/seed v0.0.0-20170313163322-e2103e2c3529 // indirect
 	github.com/stretchr/objx v0.5.2 // indirect
+	github.com/tidwall/match v1.1.1 // indirect
+	github.com/tidwall/pretty v1.2.0 // indirect
 	golang.org/x/net v0.28.0 //indirect
 	golang.org/x/sys v0.24.0 // indirect
 	golang.org/x/text v0.19.0 // indirect

@@ -7,6 +7,7 @@ import (
 	"github.com/sashabaranov/go-openai"
 	"github.com/sashabaranov/go-openai/jsonschema"
 	"github.com/sirupsen/logrus"
+	"github.com/tidwall/gjson"
 )
 
 type GPT struct {
@@ -14,6 +15,78 @@ type GPT struct {
 	logger *logrus.Entry
 	model  string
 	role   string
+}
+
+func (c *GPT) SubmitTaskWithSchema(ctx context.Context, task string, schema string) (response string, err error) {
+	logger := c.logger.WithFields(logrus.Fields{
+		"task": task})
+	logger.Info("Submitting task to ChatGPT")
+
+	m := map[string]any{}
+	gjson.Parse(schema).ForEach(func(key, value gjson.Result) bool {
+		m[key.String()] = value.Value()
+		return true
+	})
+	def, err := jsonschema.GenerateSchemaForType(m)
+	if err != nil {
+		logger.WithError(err).Error("failed to generate schema")
+		return "", err
+	}
+	json, err := def.MarshalJSON()
+	if err != nil {
+		logger.WithError(err).Error("failed to marshal schema")
+		return "", err
+	}
+	c.logger.WithField("schema", json).Info("Submitting task to ChatGPT")
+
+	var rspFormat *openai.ChatCompletionResponseFormat
+	if schema != "" {
+		rspFormat = &openai.ChatCompletionResponseFormat{
+			Type: openai.ChatCompletionResponseFormatTypeJSONSchema,
+			JSONSchema: &openai.ChatCompletionResponseFormatJSONSchema{
+				Name:   "capabilities",
+				Schema: def,
+				Strict: true,
+			}}
+
+	}
+	// Create a request for the OpenAI API
+	req := openai.ChatCompletionRequest{
+		Model: c.model, // Use the model specified for this llm
+		Messages: []openai.ChatCompletionMessage{
+			{
+				Role:    c.role, // Use the role specified for this llm
+				Content: task,
+			},
+		},
+		ResponseFormat: rspFormat,
+	}
+
+	// Call the OpenAI API and get the response
+	resp, err := c.client.CreateChatCompletion(ctx, req)
+	if err != nil {
+		logger.WithError(err).Error("Failed to submit task to ChatGPT")
+		return "", fmt.Errorf("failed to submit task to ChatGPT: %w", err)
+	}
+
+	// Check if the response contains choices and log them
+	if len(resp.Choices) == 0 {
+		logger.Warn("No response choices from ChatGPT")
+		return "", fmt.Errorf("no response from ChatGPT")
+	}
+
+	var results string
+	for i, choice := range resp.Choices {
+		logger.WithFields(logrus.Fields{
+			"choice_index": i,
+			"content":      choice.Message.Content,
+		}).Info("Received choice from ChatGPT")
+
+		results += choice.Message.Content
+	}
+
+	logger.Info("Task successfully processed by ChatGPT with multiple choices")
+	return results, nil
 }
 
 var _ Llm = &GPT{}
